@@ -1,0 +1,144 @@
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+}
+
+.backgroundShapes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.shape1 {
+  position: absolute;
+  top: 20%;
+  left: -10%;
+  width: 50vw;
+  height: 50vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0) 70%);
+  filter: blur(40px);
+}
+
+.shape2 {
+  position: absolute;
+  bottom: -10%;
+  right: -10%;
+  width: 60vw;
+  height: 60vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, rgba(139, 92, 246, 0) 70%);
+  filter: blur(40px);
+}
+
+.content {
+  max-width: 800px;
+  z-index: 10;
+  padding: 2rem;
+}
+
+.title {
+  font-size: clamp(3rem, 8vw, 5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+}
+
+.subtitle {
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+
+.roles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+
+.roleBadge {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 0.5rem 1.5rem;
+  border-radius: 9999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: var(--glass-shadow);
+}
+
+.ctaContainer {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.primaryBtn {
+  background: var(--accent-color);
+  color: #fff;
+  padding: 1rem 2.5rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+}
+
+.primaryBtn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+}
+
+.secondaryBtn {
+  background: transparent;
+  color: var(--text-primary);
+  padding: 1rem 2.5rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  border: 1px solid var(--text-primary);
+  cursor: pointer;
+}
+
+.secondaryBtn:hover {
+  background: var(--text-primary);
+  color: var(--bg-color);
+}
+
+@media (max-width: 768px) {
+  .ctaContainer {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+  }
+  
+  .primaryBtn, .secondaryBtn {
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+    white-space: nowrap;
+    width: 100%;
+    max-width: 280px;
+  }
+  
+  .roleBadge {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .title {
+    font-size: clamp(2.5rem, 10vw, 4rem);
+  }
+}
