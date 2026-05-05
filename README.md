@@ -2,8 +2,6 @@
 
 Welcome to my personal developer portfolio, a high-performance, aesthetically pleasing web application designed to showcase my skills bridging the gap between Design and Engineering.
 
-![Portfolio Preview](./public/window.svg) <!-- Replace with a real screenshot if available -->
-
 ## 🌟 Key Features
 
 - **Modern Glassmorphism Design**: Custom-built CSS modules featuring layered radial gradients, background blurs, and an immersive aesthetic.
