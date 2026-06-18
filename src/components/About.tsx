@@ -42,7 +42,11 @@ export default function About() {
           viewport={{ once: true, margin: "-100px" }}
         >
           {/* Main Bio Card */}
-          <motion.div variants={cardVariants} className={`glass-panel ${styles.bentoCard} ${styles.mainBio}`}>
+          <motion.div 
+            variants={cardVariants} 
+            whileHover={{ y: -2 }}
+            className={`glass-panel ${styles.bentoCard} ${styles.mainBio}`}
+          >
             <h3 className={styles.cardTitle}>
               <User className={styles.cardIcon} size={24} /> Who I Am
             </h3>
@@ -55,7 +59,11 @@ export default function About() {
           </motion.div>
 
           {/* Education Card */}
-          <motion.div variants={cardVariants} className={`glass-panel ${styles.bentoCard} ${styles.educationCard}`}>
+          <motion.div 
+            variants={cardVariants} 
+            whileHover={{ y: -2 }}
+            className={`glass-panel ${styles.bentoCard} ${styles.educationCard}`}
+          >
             <h3 className={styles.cardTitle}>
               <GraduationCap className={styles.cardIcon} size={24} /> Education
             </h3>
@@ -65,7 +73,11 @@ export default function About() {
           </motion.div>
 
           {/* Stats Card */}
-          <motion.div variants={cardVariants} className={`glass-panel ${styles.bentoCard} ${styles.statsCard}`}>
+          <motion.div 
+            variants={cardVariants} 
+            whileHover={{ y: -2 }}
+            className={`glass-panel ${styles.bentoCard} ${styles.statsCard}`}
+          >
             <div className={styles.statItem}>
               <span className={styles.statNumber}>3+</span>
               <span className={styles.statLabel}>Years<br/>Exp</span>

@@ -49,12 +49,10 @@ export default function Skills() {
               // Generate random float animation parameters
               const randomDuration = Math.random() * 2 + 3; // 3 to 5 seconds
               const randomDelay = Math.random() * 2;
-              const randomY = Math.random() * 15 + 10; // 10px to 25px float
 
               return (
                 <motion.div
                   key={index}
-                  className={styles.bubble}
                   drag
                   dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
                   dragElastic={0.1}
@@ -65,15 +63,16 @@ export default function Skills() {
                     opacity: { duration: 0.5, delay: index * 0.05 },
                     scale: { type: "spring", stiffness: 200, damping: 15, delay: index * 0.05 },
                   }}
-                  animate={{
-                    y: [0, -randomY, 0],
-                  }}
-                  style={{
-                    animation: `float ${randomDuration}s ease-in-out ${randomDelay}s infinite`,
-                  }}
                 >
-                  <span className={styles.icon}>{skill.icon}</span>
-                  {skill.name}
+                  <div
+                    className={styles.bubble}
+                    style={{
+                      animation: `float ${randomDuration}s ease-in-out ${randomDelay}s infinite`,
+                    }}
+                  >
+                    <span className={styles.icon}>{skill.icon}</span>
+                    {skill.name}
+                  </div>
                 </motion.div>
               );
             })}

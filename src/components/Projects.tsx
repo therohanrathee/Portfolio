@@ -46,7 +46,12 @@ export default function Projects({ fetchedProjects }: { fetchedProjects?: Projec
             viewport={{ once: true, margin: "-100px" }}
           >
             {displayProjects.map((project, index) => (
-              <motion.div key={index} variants={cardVariants} className={`glass-panel ${styles.card}`}>
+              <motion.div 
+                key={index} 
+                variants={cardVariants} 
+                whileHover={{ y: -2 }}
+                className={`glass-panel ${styles.card}`}
+              >
                 <div className={styles.cardHeader}>
                   <Folder size={40} className={styles.folderIcon} />
                   <div className={styles.links}>
