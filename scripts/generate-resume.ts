@@ -37,7 +37,7 @@ async function fetchAllRepos(): Promise<any[]> {
 }
 
 async function generateBullets(
-  genModel: any,
+  genAI: GoogleGenerativeAI,
   repo: any,
   skills: string
 ): Promise<string[]> {
@@ -67,8 +67,10 @@ Return the response in raw JSON format matching this schema:
 
 Return ONLY the raw JSON output.`;
 
+  // Try 2.0-flash first
   try {
-    const response = await genModel.generateContent({
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const response = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
         responseMimeType: "application/json",
@@ -78,12 +80,25 @@ Return ONLY the raw JSON output.`;
     const data = JSON.parse(response.response.text());
     return data.bullets || [];
   } catch (error) {
-    console.error(`Error generating bullets for ${repo.name}:`, error);
-    // Fallback bullets
-    return [
-      `Developed ${repo.name} using ${repo.language || "modern technologies"} with focus on clean architecture and performance.`,
-      `Integrated repository features, setting up code versioning and documenting implementation details on GitHub.`
-    ];
+    console.warn(`Gemini 2.0-flash failed for ${repo.name}, trying Gemini 1.5-flash...`);
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const response = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
+        },
+      });
+      const data = JSON.parse(response.response.text());
+      return data.bullets || [];
+    } catch (fallbackError) {
+      console.error(`Gemini 1.5-flash also failed for ${repo.name}:`, fallbackError);
+      return [
+        `Developed ${repo.name} using ${repo.language || "modern technologies"} with focus on clean architecture and performance.`,
+        `Integrated repository features, setting up code versioning and documenting implementation details on GitHub.`
+      ];
+    }
   }
 }
 
@@ -92,10 +107,9 @@ async function main() {
 
   // Validate API Key
   const apiKey = process.env.GEMINI_API_KEY;
-  let genModel: any = null;
+  let genAI: GoogleGenerativeAI | null = null;
   if (apiKey) {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    genModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    genAI = new GoogleGenerativeAI(apiKey);
     console.log("Gemini API client initialized successfully.");
   } else {
     console.warn("GEMINI_API_KEY env variable not found. Falling back to default bullet points.");
@@ -140,8 +154,8 @@ async function main() {
   for (const project of selectedProjects) {
     console.log(`Generating bullets for: ${project.name}...`);
     let bullets: string[] = [];
-    if (genModel) {
-      bullets = await generateBullets(genModel, project, skillsString);
+    if (genAI) {
+      bullets = await generateBullets(genAI, project, skillsString);
     } else {
       bullets = [
         `Designed and implemented the repository using ${project.language || "software tools"}, applying standard styling and responsive design principles.`,
