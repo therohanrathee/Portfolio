@@ -1,11 +1,24 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion, Variants } from "framer-motion";
 import styles from "./Contact.module.css";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Mail, Phone } from "lucide-react";
 import { FaGithub, FaLinkedin, FaInstagram, FaTwitter } from "react-icons/fa";
+import { profileData } from "@/data/profile";
 
 export default function Contact() {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 480);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -37,32 +50,79 @@ export default function Contact() {
             Have an exciting project in mind? Let's connect and discuss how we can bring your ideas to life.
           </motion.p>
 
-          <motion.div variants={itemVariants}>
-            <a href="mailto:rohanrathee@icloud.com" className={styles.emailButton}>
+          <motion.div 
+            variants={itemVariants}
+            className={styles.splitButtonWrapper}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            {/* Say Hello (Placeholder) */}
+            <motion.div
+              className={styles.sayHelloPlaceholder}
+              animate={{
+                opacity: isHovered ? 0 : 1,
+                scale: isHovered ? 0.8 : 1,
+                y: isHovered ? -10 : 0
+              }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              onClick={() => setIsHovered(true)} // Support mobile click
+            >
               Say Hello
-              <ArrowRight className={styles.emailIcon} size={24} />
-            </a>
+              <ArrowRight className={styles.emailIcon} size={20} />
+            </motion.div>
+
+            {/* Email Button */}
+            <motion.a
+              href={`mailto:${profileData.contact.email}`}
+              className={`${styles.splitButton} ${styles.emailBtn}`}
+              animate={{
+                x: isHovered ? (isMobile ? -75 : -110) : 0,
+                opacity: isHovered ? 1 : 0,
+                scale: isHovered ? 1 : 0.8
+              }}
+              style={{ pointerEvents: isHovered ? "auto" : "none" }}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
+            >
+              <Mail size={18} />
+              Email Me
+            </motion.a>
+
+            {/* Call Button */}
+            <motion.a
+              href={`tel:${profileData.contact.phone.replace(/[^+\d]/g, '')}`}
+              className={`${styles.splitButton} ${styles.phoneBtn}`}
+              animate={{
+                x: isHovered ? (isMobile ? 75 : 110) : 0,
+                opacity: isHovered ? 1 : 0,
+                scale: isHovered ? 1 : 0.8
+              }}
+              style={{ pointerEvents: isHovered ? "auto" : "none" }}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
+            >
+              <Phone size={18} />
+              Call Me
+            </motion.a>
           </motion.div>
 
           {/* Footer & Socials combined in minimalist luxury style */}
           <motion.div variants={itemVariants} className={styles.footer}>
             <div className={styles.socials}>
-              <a href="https://github.com/therohanrathee" target="_blank" rel="noreferrer" className={styles.socialIcon}>
+              <a href={profileData.contact.github} target="_blank" rel="noreferrer" className={styles.socialIcon}>
                 <FaGithub size={26} />
               </a>
-              <a href="https://www.linkedin.com/in/rohanrathee/" target="_blank" rel="noreferrer" className={styles.socialIcon}>
+              <a href={profileData.contact.linkedin} target="_blank" rel="noreferrer" className={styles.socialIcon}>
                 <FaLinkedin size={26} />
               </a>
-              <a href="https://twitter.com/therohanrathee" target="_blank" rel="noreferrer" className={styles.socialIcon}>
+              <a href={profileData.contact.twitter} target="_blank" rel="noreferrer" className={styles.socialIcon}>
                 <FaTwitter size={26} />
               </a>
-              <a href="https://instagram.com/therohanrathee" target="_blank" rel="noreferrer" className={styles.socialIcon}>
+              <a href={profileData.contact.instagram} target="_blank" rel="noreferrer" className={styles.socialIcon}>
                 <FaInstagram size={26} />
               </a>
             </div>
             
             <div className={styles.copyright}>
-              © {new Date().getFullYear()} Rohan Rathee
+              © {new Date().getFullYear()} {profileData.name}
             </div>
           </motion.div>
         </motion.div>

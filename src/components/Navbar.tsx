@@ -40,6 +40,13 @@ export default function Navbar() {
           <Link href="#skills" className={styles.navLink}>Skills</Link>
           <Link href="#projects" className={styles.navLink}>Projects</Link>
           <Link href="#contact" className={styles.navLink}>Contact</Link>
+          <a 
+            href="/resume.pdf" 
+            download="Rohan_Rathee_Resume.pdf" 
+            className={`${styles.navLink} ${styles.resumeBtn}`}
+          >
+            Resume
+          </a>
           
           {mounted && (
             <button

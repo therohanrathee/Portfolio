@@ -2,25 +2,37 @@
 
 import { motion } from "framer-motion";
 import styles from "./Skills.module.css";
-import { Code2, Video, MessageSquareHeart, MonitorPlay, Palette, Terminal, Smartphone, Layout, Search } from "lucide-react";
+import { 
+  Code2, Video, MessageSquareHeart, MonitorPlay, Palette, 
+  Terminal, Smartphone, Layout, Search, Database, 
+  Users, Shield, ShieldCheck, MessageSquare, Brain, Sparkles 
+} from "lucide-react";
 import { useEffect, useState } from "react";
+import { profileData } from "@/data/profile";
 
-const allSkills = [
-  { name: "Next.js", icon: <Layout size={20} /> },
-  { name: "React", icon: <Code2 size={20} /> },
-  { name: "TypeScript", icon: <Terminal size={20} /> },
-  { name: "Swift (iOS)", icon: <Smartphone size={20} /> },
-  { name: "Python", icon: <Terminal size={20} /> },
-  { name: "C++", icon: <Code2 size={20} /> },
-  { name: "Final Cut Pro", icon: <Video size={20} /> },
-  { name: "Adobe Photoshop", icon: <Palette size={20} /> },
-  { name: "Canva", icon: <Palette size={20} /> },
-  { name: "Unreal Engine", icon: <MonitorPlay size={20} /> },
-  { name: "Video Editing", icon: <Video size={20} /> },
-  { name: "Leadership", icon: <MessageSquareHeart size={20} /> },
-  { name: "Management", icon: <MessageSquareHeart size={20} /> },
-  { name: "SEO", icon: <Search size={20} /> }
-];
+const iconMap: Record<string, React.ReactNode> = {
+  "Next.js": <Layout size={20} />,
+  "React": <Code2 size={20} />,
+  "TypeScript": <Terminal size={20} />,
+  "Swift (iOS)": <Smartphone size={20} />,
+  "PostgreSQL": <Database size={20} />,
+  "Python": <Terminal size={20} />,
+  "C++": <Code2 size={20} />,
+  "Final Cut Pro": <Video size={20} />,
+  "Adobe Photoshop": <Palette size={20} />,
+  "Canva": <Palette size={20} />,
+  "Unreal Engine": <MonitorPlay size={20} />,
+  "Video Editing": <Video size={20} />,
+  "SEO": <Search size={20} />,
+  "Leadership": <MessageSquareHeart size={20} />,
+  "Management": <MessageSquareHeart size={20} />,
+  "Teamwork": <Users size={20} />,
+  "Courage": <Shield size={20} />,
+  "Sense of Responsibility": <ShieldCheck size={20} />,
+  "Effective Communication": <MessageSquare size={20} />,
+  "Critical Thinking": <Brain size={20} />,
+  "Self Confidence": <Sparkles size={20} />
+};
 
 export default function Skills() {
   const [mounted, setMounted] = useState(false);
@@ -45,7 +57,7 @@ export default function Skills() {
 
         {mounted && (
           <div className={styles.bubbleContainer}>
-            {allSkills.map((skill, index) => {
+            {profileData.skills.map((skill, index) => {
               // Generate random float animation parameters
               const randomDuration = Math.random() * 2 + 3; // 3 to 5 seconds
               const randomDelay = Math.random() * 2;
@@ -70,7 +82,7 @@ export default function Skills() {
                       animation: `float ${randomDuration}s ease-in-out ${randomDelay}s infinite`,
                     }}
                   >
-                    <span className={styles.icon}>{skill.icon}</span>
+                    <span className={styles.icon}>{iconMap[skill.name] || <Code2 size={20} />}</span>
                     {skill.name}
                   </div>
                 </motion.div>

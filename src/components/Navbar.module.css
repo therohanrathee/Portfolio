@@ -75,6 +75,24 @@
   background-color: var(--glass-border);
 }
 
+.resumeBtn {
+  border: 1px solid var(--accent-color);
+  padding: 0.35rem 0.85rem;
+  border-radius: 6px;
+  background: rgba(96, 165, 250, 0.05);
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.resumeBtn:hover {
+  background: var(--accent-color);
+  color: var(--bg-color) !important;
+}
+
+.resumeBtn::after {
+  display: none !important;
+}
+
 @media (max-width: 768px) {
   .navLinks {
     display: none;

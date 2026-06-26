@@ -1,0 +1,56 @@
+name: Daily Resume Generator & Deploy
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run daily at midnight UTC
+  workflow_dispatch: # Allow manual trigger from the GitHub Actions UI
+
+permissions:
+  contents: write # Required to commit the updated resume and deploy static pages
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-size: 'large'
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Generate PDF Resume
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: npx tsx scripts/generate-resume.ts
+
+      - name: Commit and Push Resume PDF
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/resume.pdf
+          if git diff --staged --quiet; then
+            echo "No changes in resume.pdf"
+          else
+            git commit -m "chore: auto-update daily resume [skip actions]"
+            git push origin main
+          fi
+
+      - name: Build static site
+        run: npm run build
+        env:
+          GITHUB_ACTIONS: true
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./out
+          publish_branch: gh-pages

@@ -36,34 +36,83 @@
   margin: 0 auto 3rem auto;
 }
 
-.emailButton {
-  display: inline-flex;
+.splitButtonWrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 1rem;
-  background: var(--text-primary);
-  color: var(--bg-color);
-  padding: 1.2rem 3rem;
-  border-radius: 9999px;
-  font-size: 1.25rem;
-  font-weight: 700;
-  text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  margin: 4rem auto;
+  height: 60px;
+  max-width: 500px;
 }
 
-.emailButton:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+.sayHelloPlaceholder {
+  position: absolute;
+  background: var(--text-primary);
+  color: var(--bg-color);
+  padding: 1.1rem 2.8rem;
+  border-radius: 9999px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  white-space: nowrap;
+}
+
+.sayHelloPlaceholder:hover {
   background: var(--accent-color);
   color: #fff;
+}
+
+.splitButton {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem 2.4rem;
+  border-radius: 9999px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  z-index: 5;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.emailBtn {
+  background: var(--accent-color);
+  color: #fff;
+}
+
+.emailBtn:hover {
+  background: var(--accent-hover);
+}
+
+.phoneBtn {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.phoneBtn:hover {
+  border-color: var(--accent-color);
+  background: rgba(59, 130, 246, 0.1);
 }
 
 .emailIcon {
   transition: transform 0.3s ease;
 }
 
-.emailButton:hover .emailIcon {
-  transform: translateX(5px);
+.sayHelloPlaceholder:hover .emailIcon {
+  transform: translateX(4px);
 }
 
 .footer {
@@ -98,13 +147,14 @@
 }
 
 @media (max-width: 768px) {
-  .emailButton {
-    padding: 1rem 2rem;
+  .sayHelloPlaceholder {
+    padding: 0.9rem 2.2rem;
     font-size: 1.1rem;
-    white-space: nowrap;
-    width: 100%;
-    max-width: 280px;
-    justify-content: center;
+  }
+  
+  .splitButton {
+    padding: 0.8rem 1.6rem;
+    font-size: 0.95rem;
   }
   
   .contactSection {
