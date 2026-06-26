@@ -186,148 +186,86 @@ async function main() {
       padding: 0;
     }
     body {
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      color: #333333;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #222222;
       background-color: #ffffff;
       line-height: 1.4;
-      font-size: 11px;
+      font-size: 9.5px;
       padding: 0.4in;
     }
     a {
-      color: #0b57d0;
+      color: #222222;
       text-decoration: none;
     }
     .header {
       text-align: center;
-      margin-bottom: 15px;
-      border-bottom: 2px solid #333;
-      padding-bottom: 10px;
+      margin-bottom: 12px;
     }
     .header h1 {
-      font-size: 26px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 4px;
-      color: #111111;
-    }
-    .header .subtitle {
-      font-size: 12px;
-      font-weight: 500;
-      color: #666;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-    }
-    .contact-info {
-      font-size: 10px;
-      color: #444;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .contact-info span {
-      display: flex;
-      align-items: center;
-    }
-    .container {
-      display: flex;
-      justify-content: space-between;
-    }
-    .left-col {
-      width: 32%;
-      border-right: 1px solid #ddd;
-      padding-right: 15px;
-    }
-    .right-col {
-      width: 65%;
-    }
-    .section-title {
-      font-size: 12px;
+      font-size: 20px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      border-bottom: 1px solid #333;
-      padding-bottom: 2px;
-      margin-bottom: 8px;
-      margin-top: 12px;
-      color: #111;
+      margin-bottom: 4px;
+      color: #111111;
     }
-    .left-col .section-title:first-of-type,
-    .right-col .section-title:first-of-type {
-      margin-top: 0;
+    .contact-info {
+      font-size: 9px;
+      color: #555555;
+      margin-bottom: 4px;
     }
-    .info-block {
-      margin-bottom: 10px;
+    .contact-info a {
+      color: #0b57d0;
+      text-decoration: underline;
     }
-    .info-title {
+    .section-title {
+      font-size: 10.5px;
       font-weight: 700;
-      font-size: 11px;
-      color: #111;
-    }
-    .info-sub {
-      font-style: italic;
-      color: #555;
-      font-size: 10px;
-      margin-bottom: 2px;
-    }
-    .info-detail {
-      font-size: 9.5px;
-      color: #666;
-    }
-    .skills-group {
-      margin-bottom: 8px;
-    }
-    .skills-group-title {
-      font-weight: 700;
-      font-size: 9.5px;
       text-transform: uppercase;
-      color: #444;
-      margin-bottom: 2px;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #222222;
+      padding-bottom: 1px;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      color: #111111;
     }
-    .skills-list {
-      font-size: 10px;
-      color: #333;
-      line-height: 1.3;
-    }
-    .project-block {
-      margin-bottom: 10px;
-    }
-    .project-header {
+    .row {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      margin-bottom: 3px;
+      margin-bottom: 1px;
     }
-    .project-name {
+    .bold-text {
       font-weight: 700;
-      font-size: 11px;
-      color: #111;
+      color: #111111;
     }
-    .project-link {
-      font-size: 9.5px;
-    }
-    .project-tech {
+    .italic-text {
       font-style: italic;
-      font-size: 9.5px;
-      color: #666;
-      margin-bottom: 3px;
+      color: #444444;
+    }
+    .item-block {
+      margin-bottom: 8px;
+    }
+    .skills-block {
+      line-height: 1.5;
+      margin-bottom: 8px;
     }
     .bullets {
-      list-style-type: square;
-      padding-left: 15px;
+      list-style-type: disc;
+      padding-left: 14px;
+      margin-top: 2px;
     }
     .bullets li {
-      font-size: 10px;
-      color: #333;
-      margin-bottom: 3px;
+      font-size: 9.5px;
+      color: #333333;
+      margin-bottom: 2px;
       line-height: 1.35;
     }
     .summary-text {
-      font-size: 10px;
-      color: #444;
+      font-size: 9.5px;
+      color: #333333;
       line-height: 1.4;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
       text-align: justify;
     }
   </style>
@@ -336,80 +274,66 @@ async function main() {
 
   <div class="header">
     <h1>${profileData.name}</h1>
-    <div class="subtitle">${profileData.title}</div>
     <div class="contact-info">
-      <span>📍 ${profileData.contact.location}</span>
-      <span>✉️ <a href="mailto:${profileData.contact.email}">${profileData.contact.email}</a></span>
-      <span>📞 ${profileData.contact.phone}</span>
-      <span>🌐 <a href="${profileData.contact.github}">github.com/therohanrathee</a></span>
-      <span>🔗 <a href="${profileData.contact.linkedin}">linkedin.com/in/rohanrathee</a></span>
+      ${profileData.contact.location} &nbsp;|&nbsp; 
+      ${profileData.contact.phone} &nbsp;|&nbsp; 
+      <a href="mailto:${profileData.contact.email}">${profileData.contact.email}</a> &nbsp;|&nbsp; 
+      <a href="${profileData.contact.github}">github.com/therohanrathee</a> &nbsp;|&nbsp; 
+      <a href="${profileData.contact.linkedin}">linkedin.com/in/rohanrathee</a>
     </div>
   </div>
 
-  <div class="container">
-    <div class="left-col">
-      <div class="section-title">Skills</div>
-      
-      <div class="skills-group">
-        <div class="skills-group-title">Technical Skills</div>
-        <div class="skills-list">${techSkills}</div>
-      </div>
-      
-      <div class="skills-group">
-        <div class="skills-group-title">Creative & Multimedia</div>
-        <div class="skills-list">${creativeSkills}</div>
-      </div>
-      
-      <div class="skills-group">
-        <div class="skills-group-title">Professional Qualities</div>
-        <div class="skills-list">${professionalSkills}</div>
-      </div>
+  <div class="section-title">Summary</div>
+  <p class="summary-text">${profileData.bio.join(" ")}</p>
 
-      <div class="section-title">Education</div>
-      ${profileData.education.map(edu => `
-        <div class="info-block">
-          <div class="info-title">${edu.title}</div>
-          <div class="info-sub">${edu.school} (${edu.year})</div>
-          <div class="info-detail">${edu.detail}</div>
-        </div>
-      `).join("")}
-
-      <div class="section-title">Languages</div>
-      <div class="info-block">
-        <div class="info-list" style="font-size: 10px;">${profileData.personal.languages}</div>
+  <div class="section-title">Education</div>
+  ${profileData.education.map(edu => `
+    <div class="item-block">
+      <div class="row">
+        <span class="bold-text">${edu.title}</span>
+        <span class="bold-text">${edu.year}</span>
+      </div>
+      <div class="row">
+        <span class="italic-text">${edu.school}</span>
+        <span class="italic-text">${edu.detail}</span>
       </div>
     </div>
+  `).join("")}
 
-    <div class="right-col">
-      <div class="section-title">Profile Summary</div>
-      <p class="summary-text">${profileData.bio.join(" ")}</p>
-
-      <div class="section-title">Achievements & Leadership</div>
-      <div class="info-block">
-        <div class="info-header" style="display: flex; justify-content: space-between; align-items: baseline;">
-          <span class="info-title">${profileData.ssb.title}</span>
-          <span style="font-size: 9.5px; font-weight: 700; color: #555;">${profileData.ssb.badge}</span>
-        </div>
-        <div class="info-detail" style="margin-top: 3px; font-size: 10px; line-height: 1.35; color: #333;">
-          ${profileData.ssb.description}
-        </div>
-      </div>
-
-      <div class="section-title">Featured Projects</div>
-      ${projectsWithBullets.map(project => `
-        <div class="project-block">
-          <div class="project-header">
-            <span class="project-name">${project.name.replace(/-/g, ' ')}</span>
-            <span class="project-link"><a href="${project.url}" target="_blank">View Code</a></span>
-          </div>
-          <div class="project-tech">Languages/Topics: ${[project.language, ...project.topics].filter(Boolean).join(", ")}</div>
-          <ul class="bullets">
-            ${project.bullets.map(b => `<li>${b}</li>`).join("")}
-          </ul>
-        </div>
-      `).join("")}
-    </div>
+  <div class="section-title">Skills</div>
+  <div class="skills-block">
+    <div><span class="bold-text">Technical Skills:</span> ${techSkills}</div>
+    <div><span class="bold-text">Creative & Multimedia:</span> ${creativeSkills}</div>
+    <div><span class="bold-text">Professional Qualities:</span> ${professionalSkills}</div>
   </div>
+
+  <div class="section-title">Achievements & Leadership</div>
+  <div class="item-block">
+    <div class="row">
+      <span class="bold-text">${profileData.ssb.title} (AFSB Recommended)</span>
+      <span class="bold-text">2025</span>
+    </div>
+    <div class="row">
+      <span class="italic-text">${profileData.ssb.badge}</span>
+    </div>
+    <p style="margin-top: 2px; font-size: 9.5px; color: #333333; line-height: 1.35;">
+      ${profileData.ssb.description}
+    </p>
+  </div>
+
+  <div class="section-title">Featured Projects</div>
+  ${projectsWithBullets.map(project => `
+    <div class="item-block">
+      <div class="row">
+        <span class="bold-text">${project.name.replace(/-/g, ' ')}</span>
+        <span><a href="${project.url}" target="_blank" style="text-decoration: underline; color: #0b57d0;">View Code</a></span>
+      </div>
+      <div class="italic-text" style="font-size: 9px; margin-bottom: 2px;">Technologies: ${[project.language, ...project.topics].filter(Boolean).join(", ")}</div>
+      <ul class="bullets">
+        ${project.bullets.map(b => `<li>${b}</li>`).join("")}
+      </ul>
+    </div>
+  `).join("")}
 
 </body>
 </html>
