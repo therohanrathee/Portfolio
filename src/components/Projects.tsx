@@ -65,50 +65,48 @@ export default function Projects({
       <div className="container">
         <div className={styles.header}>
           <h2 className={styles.title}>Some Things I've <span className="text-gradient">Built</span></h2>
-          <p className={styles.subtitle}>Swipe or scroll horizontally to explore all my highlighted work and open-source GitHub repositories.</p>
+          <p className={styles.subtitle}>Explore my highlighted work and open-source GitHub repositories.</p>
         </div>
 
-        <div className={styles.scrollWrapper}>
-          <motion.div 
-            className={styles.scrollContainer}
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-          >
-            {sortedProjects.map((project, index) => (
-              <motion.div 
-                key={index} 
-                variants={cardVariants} 
-                whileHover={{ y: -6 }}
-                className={`glass-panel ${styles.card}`}
-              >
-                <div className={styles.cardHeader}>
-                  <Folder size={40} className={styles.folderIcon} />
-                  <div className={styles.links}>
-                    <a href={project.github} target="_blank" rel="noreferrer" className={styles.linkIcon} aria-label="GitHub Repository">
-                      <FaGithub size={22} />
+        <motion.div 
+          className={styles.grid}
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          {sortedProjects.map((project, index) => (
+            <motion.div 
+              key={index} 
+              variants={cardVariants} 
+              whileHover={{ y: -6 }}
+              className={`glass-panel ${styles.card}`}
+            >
+              <div className={styles.cardHeader}>
+                <Folder size={40} className={styles.folderIcon} />
+                <div className={styles.links}>
+                  <a href={project.github} target="_blank" rel="noreferrer" className={styles.linkIcon} aria-label="GitHub Repository">
+                    <FaGithub size={22} />
+                  </a>
+                  {project.link && (
+                    <a href={project.link} target="_blank" rel="noreferrer" className={styles.linkIcon} aria-label="Live Demo">
+                      <ExternalLink size={22} />
                     </a>
-                    {project.link && (
-                      <a href={project.link} target="_blank" rel="noreferrer" className={styles.linkIcon} aria-label="Live Demo">
-                        <ExternalLink size={22} />
-                      </a>
-                    )}
-                  </div>
+                  )}
                 </div>
-                
-                <h3 className={styles.projectTitle}>{project.title}</h3>
-                <p className={styles.projectDescription}>{project.description}</p>
-                
-                <div className={styles.techStack}>
-                  {project.tech.map((tech, i) => (
-                    <span key={i} className={styles.techItem}>{tech}</span>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
+              </div>
+              
+              <h3 className={styles.projectTitle}>{project.title}</h3>
+              <p className={styles.projectDescription}>{project.description}</p>
+              
+              <div className={styles.techStack}>
+                {project.tech.map((tech, i) => (
+                  <span key={i} className={styles.techItem}>{tech}</span>
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
     </section>
   );
