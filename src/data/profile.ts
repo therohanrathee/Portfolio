@@ -11,9 +11,8 @@ export const profileData = {
     instagram: "https://instagram.com/therohanrathee",
   },
   bio: [
-    "I am a Computer Science Engineering Student, Graphic Designer, and Social Media Manager with over 3 years of experience solving complex problems and delivering high-impact solutions for diverse clients. By merging engineering logic with creative vision, I specialize in building user-first digital products that excel in both functionality and aesthetic detail.",
-    "My technical expertise spans Next.js, React, TypeScript, and Swift (iOS), backed by creative tools like Final Cut Pro and Photoshop. From architecting clinic management interfaces like AirDentalLab to building transit apps like CityBus, I craft responsive architectures with clean code, ensuring that every project is highly optimized, accessible, and visually striking.",
-    "Beyond software engineering, I am a proven leader and organizer. I founded the annual Tech Titan school festival, coordinated esports LAN events for Tech Fusion 3.0, and achieved recommendation for the NDA-154 course from 1 AFSB, Dehradun, ranking AIR 739 (top 0.16% nationwide). I thrive in fast-paced environments that demand leadership, teamwork, and resilience."
+    "I am a Computer Science Engineering Student, Graphic Designer, and Social Media Manager. By merging engineering logic with creative vision, I build user-first digital products (like AirDentalLab and CityBus) that excel in both functionality and aesthetic detail.",
+    "Driven by leadership and resilience, I have spearheaded events like Tech Titan 1.0, coordinated esports LANs for Tech Fusion 3.0, and achieved recommendation for the NDA-154 course from 1 AFSB, Dehradun (AIR 739, top 0.16% nationwide). I thrive in environments blending technical challenge and creative execution."
   ],
   stats: {
     yearsExp: "3+",
