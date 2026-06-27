@@ -29,6 +29,29 @@ const wrap = (min: number, max: number, v: number) => {
   return ((((v - min) % rangeSize) + rangeSize) % rangeSize) + min;
 };
 
+const deterministicShuffle = (array: string[], seed: string): string[] => {
+  const shuffled = [...array];
+  let m = shuffled.length, t, i;
+  
+  let hash = 0;
+  for (let c = 0; c < seed.length; c++) {
+    hash = seed.charCodeAt(c) + ((hash << 5) - hash);
+  }
+  
+  const random = (idx: number) => {
+    const x = Math.sin(hash + idx) * 10000;
+    return x - Math.floor(x);
+  };
+
+  while (m) {
+    i = Math.floor(random(m) * m--);
+    t = shuffled[m];
+    shuffled[m] = shuffled[i];
+    shuffled[i] = t;
+  }
+  return shuffled;
+};
+
 export default function Projects({ 
   fetchedProjects,
   pinnedRepos
@@ -316,11 +339,23 @@ export default function Projects({
               </h3>
               <p className={styles.projectDescription}>{project.description}</p>
               
-              <div className={styles.techStack}>
-                {project.tech.map((tech, i) => (
-                  <span key={i} className={styles.techItem}>{tech}</span>
-                ))}
-              </div>
+              {(() => {
+                const shuffledTech = deterministicShuffle(project.tech, project.title);
+                const visibleTech = shuffledTech.slice(0, 3);
+                const hiddenTech = shuffledTech.slice(3);
+                return (
+                  <div className={styles.techStack}>
+                    {visibleTech.map((tech, i) => (
+                      <span key={i} className={styles.techItem}>{tech}</span>
+                    ))}
+                    <div style={{ display: "none" }} aria-hidden="true">
+                      {hiddenTech.map((tech, i) => (
+                        <span key={i}>{tech}</span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           ))}
         </motion.div>
