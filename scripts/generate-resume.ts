@@ -368,6 +368,12 @@ async function main() {
 
   let jobTitle = "Full Stack & iOS Developer";
   
+  // Read environment variables (passed from GitHub Actions)
+  const envJobTitle = process.env.JOB_TITLE;
+  const envShowSummary = process.env.SHOW_SUMMARY;
+  const envShowResponsibility = process.env.SHOW_RESPONSIBILITY;
+  const envShowExtraCurriculars = process.env.SHOW_EXTRACURRICULARS;
+
   // Parse command line arguments
   const args = process.argv.slice(2);
   let positionalArgTitle = "";
@@ -395,9 +401,16 @@ async function main() {
     }
   }
 
-  // Handle Job Title
+  // Handle Job Title (CLI positional argument takes priority, then process.env, then lock file, then default)
+  let resolvedTitle = "";
   if (positionalArgTitle) {
-    jobTitle = positionalArgTitle.trim();
+    resolvedTitle = positionalArgTitle.trim();
+  } else if (envJobTitle !== undefined && envJobTitle !== "") {
+    resolvedTitle = envJobTitle.trim();
+  }
+
+  if (resolvedTitle) {
+    jobTitle = resolvedTitle;
     fs.writeFileSync(roleLockPath, jobTitle, "utf8");
     console.log(`Job title locked in as: "${jobTitle}"`);
   } else if (fs.existsSync(roleLockPath)) {
@@ -420,9 +433,27 @@ async function main() {
     }
   }
 
-  // Update persistent configuration if CLI flags are passed
+  // Update persistent configuration if CLI flags or environment variables are passed
+  let configChanged = false;
   if (hasCliFlags) {
     config = { ...config, ...cliFlags };
+    configChanged = true;
+  }
+
+  if (envShowSummary !== undefined && envShowSummary !== "") {
+    config.showSummary = envShowSummary === "true";
+    configChanged = true;
+  }
+  if (envShowResponsibility !== undefined && envShowResponsibility !== "") {
+    config.showPositionsOfResponsibility = envShowResponsibility === "true";
+    configChanged = true;
+  }
+  if (envShowExtraCurriculars !== undefined && envShowExtraCurriculars !== "") {
+    config.showExtraCurriculars = envShowExtraCurriculars === "true";
+    configChanged = true;
+  }
+
+  if (configChanged) {
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2), "utf8");
     console.log("Updated and saved persistent configuration:", config);
   }

@@ -48,28 +48,11 @@ jobs:
       - name: Generate PDF Resume
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: |
-          ARGS=""
-          TITLE=""
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TITLE="${{ github.event.inputs.job_title }}"
-            if [ "${{ github.event.inputs.show_summary }}" = "false" ]; then
-              ARGS="$ARGS --skip-summary"
-            else
-              ARGS="$ARGS --show-summary"
-            fi
-            if [ "${{ github.event.inputs.show_responsibility }}" = "false" ]; then
-              ARGS="$ARGS --skip-responsibility"
-            else
-              ARGS="$ARGS --show-responsibility"
-            fi
-            if [ "${{ github.event.inputs.show_extracurriculars }}" = "false" ]; then
-              ARGS="$ARGS --skip-extracurriculars"
-            else
-              ARGS="$ARGS --show-extracurriculars"
-            fi
-          fi
-          npx tsx scripts/generate-resume.ts "$TITLE" $ARGS
+          JOB_TITLE: ${{ github.event.inputs.job_title }}
+          SHOW_SUMMARY: ${{ github.event.inputs.show_summary }}
+          SHOW_RESPONSIBILITY: ${{ github.event.inputs.show_responsibility }}
+          SHOW_EXTRACURRICULARS: ${{ github.event.inputs.show_extracurriculars }}
+        run: npx tsx scripts/generate-resume.ts
 
       - name: Commit and Push Resume PDF & Settings
         run: |
