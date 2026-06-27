@@ -84,7 +84,9 @@ jobs:
           fi
 
       - name: Build static site
-        run: npm run build
+        run: |
+          npm run build
+          cp vercel.json ./out/ || true
         env:
           GITHUB_ACTIONS: true
 
