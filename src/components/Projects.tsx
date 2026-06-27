@@ -1,6 +1,15 @@
 "use client";
 
-import { motion, Variants } from "framer-motion";
+import { useRef } from "react";
+import { 
+  motion, 
+  useScroll, 
+  useSpring, 
+  useTransform, 
+  useVelocity, 
+  useAnimationFrame, 
+  useMotionValue 
+} from "framer-motion";
 import styles from "./Projects.module.css";
 import { Folder, ExternalLink } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
@@ -14,6 +23,12 @@ type Project = {
   isPinned?: boolean;
 };
 
+// Modulo wrap helper for infinite looping
+const wrap = (min: number, max: number, v: number) => {
+  const rangeSize = max - min;
+  return ((((v - min) % rangeSize) + rangeSize) % rangeSize) + min;
+};
+
 export default function Projects({ 
   fetchedProjects,
   pinnedRepos
@@ -21,69 +36,88 @@ export default function Projects({
   fetchedProjects?: Project[];
   pinnedRepos?: string[];
 }) {
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.06 },
-    },
-  };
-
-  const cardVariants: Variants = {
-    hidden: { opacity: 0, x: 50 },
-    visible: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 100, damping: 15 } },
-  };
-
   const githubRepos = fetchedProjects && fetchedProjects.length > 0 ? fetchedProjects : [];
-
-  // Pinned repositories normalized for matching
   const pinnedList = (pinnedRepos || []).map(n => n.toLowerCase().replace(/[^a-z0-9]/g, ''));
 
-  // Map, normalize, and format repositories dynamically
   const processedProjects = githubRepos.map((repo) => {
     const key = repo.title.toLowerCase().replace(/[^a-z0-9]/g, '');
     const isPinned = pinnedList.includes(key);
-
     return {
       ...repo,
-      title: repo.title.replace(/-/g, ' '), // Replace dashes with spaces for better layout
+      title: repo.title.replace(/-/g, ' '),
       description: repo.description || "",
       tech: repo.tech,
       isPinned
     };
   });
 
-  // Sort: pinned first, then others
   const sortedProjects = [...processedProjects].sort((a, b) => {
     if (a.isPinned && !b.isPinned) return -1;
     if (!a.isPinned && b.isPinned) return 1;
     return 0;
   });
 
+  // Framer Motion Velocity Scroll setup
+  const baseX = useMotionValue(0);
+  const { scrollY } = useScroll();
+  const scrollVelocity = useVelocity(scrollY);
+  const smoothVelocity = useSpring(scrollVelocity, {
+    damping: 50,
+    stiffness: 400
+  });
+  
+  // Transform scroll velocity into horizontal scroll speed factor
+  const velocityFactor = useTransform(smoothVelocity, [0, 1000], [0, 5], {
+    clamp: false
+  });
+
+  // Constant base speed (negative to scroll leftwards)
+  const baseVelocity = -0.5;
+
+  useAnimationFrame((time, delta) => {
+    // Standard slow movement speed
+    let moveBy = baseVelocity * (delta / 10);
+    
+    // Add extra movement matching the webpage scroll speed and direction
+    const vFactor = velocityFactor.get();
+    if (vFactor !== 0) {
+      moveBy += vFactor * baseVelocity * 0.8;
+    }
+
+    baseX.set(baseX.get() + moveBy);
+  });
+
+  // Wrap translation from -25% to 0% because we repeat the cards array 4 times
+  // This makes the transition completely seamless
+  const x = useTransform(baseX, (v) => `${wrap(-25, 0, v)}%`);
+
+  // We repeat the sorted projects array 4 times to ensure it loops infinitely
+  const repeatedProjects = [
+    ...sortedProjects,
+    ...sortedProjects,
+    ...sortedProjects,
+    ...sortedProjects
+  ];
+
   return (
     <section className={styles.projectsSection} id="projects">
       <div className="container">
         <div className={styles.header}>
           <h2 className={styles.title}>Some Things I've <span className="text-gradient">Built</span></h2>
-          <p className={styles.subtitle}>Explore my highlighted work and open-source GitHub repositories.</p>
+          <p className={styles.subtitle}>My projects scroll automatically. Scroll the page vertically to control the velocity of the track.</p>
         </div>
+      </div>
 
-        <motion.div 
-          className={styles.grid}
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          {sortedProjects.map((project, index) => (
+      <div className={styles.scrollWrapper}>
+        <motion.div className={styles.scrollContainer} style={{ x }}>
+          {repeatedProjects.map((project, index) => (
             <motion.div 
               key={index} 
-              variants={cardVariants} 
-              whileHover={{ y: -6 }}
+              whileHover={{ y: -8, scale: 1.02 }}
               className={`glass-panel ${styles.card}`}
             >
               <div className={styles.cardHeader}>
-                <Folder size={40} className={styles.folderIcon} />
+                <Folder size={36} className={styles.folderIcon} />
                 <div className={styles.links}>
                   <a href={project.github} target="_blank" rel="noreferrer" className={styles.linkIcon} aria-label="GitHub Repository">
                     <FaGithub size={22} />
@@ -96,7 +130,10 @@ export default function Projects({
                 </div>
               </div>
               
-              <h3 className={styles.projectTitle}>{project.title}</h3>
+              <h3 className={styles.projectTitle}>
+                {project.title}
+                {project.isPinned && <span className={styles.featuredBadge}>Pinned</span>}
+              </h3>
               <p className={styles.projectDescription}>{project.description}</p>
               
               <div className={styles.techStack}>
