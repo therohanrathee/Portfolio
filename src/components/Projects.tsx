@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { 
   motion, 
   useScroll, 
@@ -23,7 +23,7 @@ type Project = {
   isPinned?: boolean;
 };
 
-// Modulo wrap helper for infinite looping
+// Modulo wrap helper for infinite looping in pixels
 const wrap = (min: number, max: number, v: number) => {
   const rangeSize = max - min;
   return ((((v - min) % rangeSize) + rangeSize) % rangeSize) + min;
@@ -57,6 +57,20 @@ export default function Projects({
     return 0;
   });
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const isDown = useRef(false);
+  const startX = useRef(0);
+  
+  // Track one loop width for modulo calculations (measured dynamically)
+  const [loopWidth, setLoopWidth] = useState(0);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      setLoopWidth(containerRef.current.scrollWidth / 4);
+    }
+  }, [sortedProjects]);
+
   // Framer Motion Velocity Scroll setup
   const baseX = useMotionValue(0);
   const { scrollY } = useScroll();
@@ -65,35 +79,71 @@ export default function Projects({
     damping: 50,
     stiffness: 400
   });
-  
-  // Transform scroll velocity into horizontal scroll speed factor
-  const velocityFactor = useTransform(smoothVelocity, [0, 1000], [0, 1.5], {
-    clamp: true
-  });
 
-  // Constant base speed (negative to scroll leftwards)
-  const baseVelocity = -0.005;
+  // Constant base speed in pixels per millisecond (negative to crawl left)
+  const baseVelocity = -0.015;
 
   useAnimationFrame((time, delta) => {
+    if (isDragging.current) return;
+
     // Limit delta step to prevent jumps on tab refocus
     const maxDelta = 30;
     const adjustedDelta = Math.min(delta, maxDelta);
     
-    // Standard slow movement speed
-    let moveBy = baseVelocity * (adjustedDelta / 10);
+    // Auto-scroll speed
+    let moveBy = baseVelocity * adjustedDelta;
     
     // Add extra movement matching the webpage scroll speed and direction
-    const vFactor = velocityFactor.get();
-    if (vFactor !== 0) {
-      moveBy += vFactor * baseVelocity * 0.2;
+    // scrollVelocity is positive when scrolling down (move left), negative when scrolling up (move right)
+    const currentVelocity = smoothVelocity.get();
+    if (currentVelocity !== 0) {
+      const scrollContribution = -currentVelocity * 0.0015;
+      moveBy += scrollContribution * (adjustedDelta / 16.67);
     }
 
     baseX.set(baseX.get() + moveBy);
   });
 
-  // Wrap translation from -25% to 0% because we repeat the cards array 4 times
-  // This makes the transition completely seamless
-  const x = useTransform(baseX, (v) => `${wrap(-25, 0, v)}%`);
+  // Wrap translation from -loopWidth to 0px
+  const x = useTransform(baseX, (v) => {
+    if (loopWidth === 0) return "0px";
+    return `${wrap(-loopWidth, 0, v)}px`;
+  });
+
+  // Custom Mouse/Touch Drag Handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isDown.current = true;
+    isDragging.current = true;
+    startX.current = e.pageX;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDown.current) return;
+    e.preventDefault();
+    const walk = e.pageX - startX.current;
+    startX.current = e.pageX;
+    baseX.set(baseX.get() + walk);
+  };
+
+  const handleMouseUpOrLeave = () => {
+    isDown.current = false;
+    setTimeout(() => {
+      isDragging.current = false;
+    }, 50);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    isDown.current = true;
+    isDragging.current = true;
+    startX.current = e.touches[0].pageX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDown.current) return;
+    const walk = e.touches[0].pageX - startX.current;
+    startX.current = e.touches[0].pageX;
+    baseX.set(baseX.get() + walk);
+  };
 
   // We repeat the sorted projects array 4 times to ensure it loops infinitely
   const repeatedProjects = [
@@ -108,16 +158,26 @@ export default function Projects({
       <div className="container">
         <div className={styles.header}>
           <h2 className={styles.title}>Some Things I've <span className="text-gradient">Built</span></h2>
-          <p className={styles.subtitle}>My projects scroll automatically. Scroll the page vertically to control the velocity of the track.</p>
+          <p className={styles.subtitle}>Drag horizontally to explore, or scroll the page vertically to shift the marquee velocity and direction.</p>
         </div>
       </div>
 
       <div className={styles.scrollWrapper}>
-        <motion.div className={styles.scrollContainer} style={{ x }}>
+        <motion.div 
+          ref={containerRef}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUpOrLeave}
+          onMouseLeave={handleMouseUpOrLeave}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleMouseUpOrLeave}
+          className={styles.scrollContainer} 
+          style={{ x }}
+        >
           {repeatedProjects.map((project, index) => (
-            <motion.div 
+            <div 
               key={index} 
-              whileHover={{ y: -8, scale: 1.02 }}
               className={`glass-panel ${styles.card}`}
             >
               <div className={styles.cardHeader}>
@@ -145,7 +205,7 @@ export default function Projects({
                   <span key={i} className={styles.techItem}>{tech}</span>
                 ))}
               </div>
-            </motion.div>
+            </div>
           ))}
         </motion.div>
       </div>

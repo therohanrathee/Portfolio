@@ -40,6 +40,12 @@
   gap: 2rem;
   width: max-content;
   flex-wrap: nowrap;
+  cursor: grab;
+  user-select: none;
+}
+
+.scrollContainer:active {
+  cursor: grabbing;
 }
 
 .card {
