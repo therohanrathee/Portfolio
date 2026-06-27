@@ -139,10 +139,32 @@ export default function Projects({
   });
 
   // Custom Mouse/Touch Drag Handlers
+  const dragDistance = useRef(0);
+
+  const handleLinkClick = (e: React.MouseEvent) => {
+    // If the user dragged more than 10px, prevent navigating
+    if (dragDistance.current > 10) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
   const handleMouseDown = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    // Allow natural link clicks (dont preventDefault) but block text selection ghosting on other card areas
+    if (target.closest("a")) {
+      isDown.current = true;
+      isDragging.current = true;
+      startX.current = e.pageX;
+      dragDistance.current = 0;
+      return;
+    }
+    
+    e.preventDefault();
     isDown.current = true;
     isDragging.current = true;
     startX.current = e.pageX;
+    dragDistance.current = 0;
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -150,6 +172,7 @@ export default function Projects({
     e.preventDefault();
     const walk = e.pageX - startX.current;
     startX.current = e.pageX;
+    dragDistance.current += Math.abs(walk);
     baseX.set(baseX.get() + walk);
   };
 
@@ -164,12 +187,14 @@ export default function Projects({
     isDown.current = true;
     isDragging.current = true;
     startX.current = e.touches[0].pageX;
+    dragDistance.current = 0;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDown.current) return;
     const walk = e.touches[0].pageX - startX.current;
     startX.current = e.touches[0].pageX;
+    dragDistance.current += Math.abs(walk);
     baseX.set(baseX.get() + walk);
   };
 
@@ -211,11 +236,25 @@ export default function Projects({
               <div className={styles.cardHeader}>
                 <Folder size={36} className={styles.folderIcon} />
                 <div className={styles.links}>
-                  <a href={project.github} target="_blank" rel="noreferrer" className={styles.linkIcon} aria-label="GitHub Repository">
+                  <a 
+                    onClick={handleLinkClick}
+                    href={project.github} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className={styles.linkIcon} 
+                    aria-label="GitHub Repository"
+                  >
                     <FaGithub size={22} />
                   </a>
                   {project.link && (
-                    <a href={project.link} target="_blank" rel="noreferrer" className={styles.linkIcon} aria-label="Live Demo">
+                    <a 
+                      onClick={handleLinkClick}
+                      href={project.link} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className={styles.linkIcon} 
+                      aria-label="Live Demo"
+                    >
                       <ExternalLink size={22} />
                     </a>
                   )}
