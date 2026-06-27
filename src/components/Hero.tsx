@@ -54,9 +54,10 @@ export default function Hero() {
           animate="visible"
         >
           <motion.div variants={itemVariants} className={styles.roles}>
+            <span className={styles.roleBadge}>Full Stack Developer</span>
+            <span className={styles.roleBadge}>iOS Engineer</span>
+            <span className={styles.roleBadge}>UI/UX Designer</span>
             <span className={styles.roleBadge}>Graphic Designer</span>
-            <span className={styles.roleBadge}>Social Media Manager</span>
-            <span className={styles.roleBadge}>Engineering Student</span>
           </motion.div>
 
           <motion.h1 variants={itemVariants} className={styles.title}>

@@ -4,6 +4,18 @@ import fs from "fs";
 import path from "path";
 import { profileData } from "../src/data/profile";
 
+interface ResumeConfig {
+  showSummary: boolean;
+  showPositionsOfResponsibility: boolean;
+  showExtraCurriculars: boolean;
+}
+
+const DEFAULT_CONFIG: ResumeConfig = {
+  showSummary: true,
+  showPositionsOfResponsibility: true,
+  showExtraCurriculars: true,
+};
+
 async function fetchPinnedRepos(): Promise<string[]> {
   const pinnedRepos: string[] = [];
   try {
@@ -69,9 +81,8 @@ Return the response in raw JSON format matching this schema:
 
 Return ONLY the raw JSON output.`;
 
-  // Try 2.0-flash first
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
     const response = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
@@ -82,25 +93,11 @@ Return ONLY the raw JSON output.`;
     const data = JSON.parse(response.response.text());
     return data.bullets || [];
   } catch (error) {
-    console.warn(`Gemini 2.0-flash failed for ${repo.name}, trying Gemini 1.5-flash...`);
-    try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const response = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          temperature: 0.1,
-        },
-      });
-      const data = JSON.parse(response.response.text());
-      return data.bullets || [];
-    } catch (fallbackError) {
-      console.error(`Gemini 1.5-flash also failed for ${repo.name}:`, fallbackError);
-      return [
-        `Developed ${repo.name} using ${repo.language || "modern technologies"} with focus on clean architecture and performance.`,
-        `Integrated repository features, setting up code versioning and documenting implementation details on GitHub.`
-      ];
-    }
+    console.warn(`Gemini 3.5-flash failed for ${repo.name}:`, error);
+    return [
+      `Developed ${repo.name} using ${repo.language || "modern technologies"} with focus on clean architecture and performance.`,
+      `Integrated repository features, setting up code versioning and documenting implementation details on GitHub.`
+    ];
   }
 }
 
@@ -122,25 +119,15 @@ ${skills}
 Return ONLY the raw text for the summary. Do not include quotes, markdown wrappers, or intro text.`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
     const response = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: { temperature: 0.2 },
     });
     return response.response.text().trim();
   } catch (error) {
-    console.warn("Gemini 2.0-flash summary failed, trying 1.5-flash...");
-    try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const response = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.2 },
-      });
-      return response.response.text().trim();
-    } catch (fallbackError) {
-      console.error("AI summary generation failed entirely, using fallback.", fallbackError);
-      return bio;
-    }
+    console.error("AI summary generation failed entirely, using fallback.", error);
+    return bio;
   }
 }
 
@@ -170,7 +157,7 @@ Return the response in raw JSON format matching this schema:
 Return ONLY the raw JSON output.`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
     const response = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
@@ -180,21 +167,8 @@ Return ONLY the raw JSON output.`;
     });
     return JSON.parse(response.response.text());
   } catch (error) {
-    console.warn("Gemini 2.0-flash achievements polish failed, trying 1.5-flash...");
-    try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const response = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          temperature: 0.1,
-        },
-      });
-      return JSON.parse(response.response.text());
-    } catch (fallbackError) {
-      console.error("AI achievements polish failed entirely, using fallback.", fallbackError);
-      return achievements;
-    }
+    console.error("AI achievements polish failed entirely, using fallback.", error);
+    return achievements;
   }
 }
 
@@ -217,7 +191,7 @@ Return the response in raw JSON format matching this schema:
 Return ONLY the raw JSON output.`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
     const response = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
@@ -227,22 +201,49 @@ Return ONLY the raw JSON output.`;
     });
     return JSON.parse(response.response.text());
   } catch (error) {
-    console.warn("Gemini 2.0-flash skills reorder failed, trying 1.5-flash...");
-    try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const response = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          temperature: 0.1,
-        },
-      });
-      return JSON.parse(response.response.text());
-    } catch (fallbackError) {
-      console.error("AI skills reorder failed entirely, using fallback.", fallbackError);
-      return skills;
+    console.error("AI skills reorder failed entirely, using fallback.", error);
+    return skills;
+  }
+}
+
+// Function to classify skills into: Languages, Frameworks, Tools and Libraries
+function categorizeSkills(skills: { name: string; type: string }[]) {
+  // Static configuration lists for categorization (fully case-insensitive)
+  const LANGUAGES = ["javascript", "typescript", "swift", "python", "c++", "html", "css", "swift (ios)"];
+  const FRAMEWORKS = ["next.js", "react", "swiftui", "uikit", "postgresql", "supabase", "react native", "express", "django", "node.js"];
+  
+  const languages: string[] = [];
+  const frameworks: string[] = [];
+  const tools: string[] = [];
+
+  for (const skill of skills) {
+    const nameLower = skill.name.toLowerCase();
+    
+    // Explicitly omit Dlib as requested
+    if (nameLower === "dlib") {
+      continue;
+    }
+    
+    // Skip soft skills / professional qualities for technical resume layout
+    if (skill.type === "professional") {
+      continue;
+    }
+
+    if (LANGUAGES.includes(nameLower)) {
+      languages.push(skill.name);
+    } else if (FRAMEWORKS.includes(nameLower)) {
+      frameworks.push(skill.name);
+    } else {
+      // Everything else that is tech or creative goes to Tools and Libraries
+      tools.push(skill.name);
     }
   }
+
+  return {
+    languages: languages.join(", "),
+    frameworks: frameworks.join(", "),
+    tools: tools.join(", "),
+  };
 }
 
 async function main() {
@@ -254,23 +255,68 @@ async function main() {
     fs.mkdirSync(publicDir);
   }
   const roleLockPath = path.join(publicDir, "target-role.txt");
+  const configPath = path.join(publicDir, "resume-config.json");
 
-  let jobTitle = "Software Engineer & Graphic Designer";
-  const argTitle = process.argv[2];
+  let jobTitle = "Full Stack & iOS Developer";
+  
+  // Parse command line arguments
+  // Arguments format: tsx scripts/generate-resume.ts [jobTitle] [--flags...]
+  const args = process.argv.slice(2);
+  let positionalArgTitle = "";
+  let cliFlags: Partial<ResumeConfig> = {};
+  let hasCliFlags = false;
 
-  if (argTitle) {
-    jobTitle = argTitle.trim();
-    // Write new job title to lock file
+  for (const arg of args) {
+    if (arg.startsWith("--")) {
+      hasCliFlags = true;
+      if (arg === "--skip-summary" || arg === "--no-summary") {
+        cliFlags.showSummary = false;
+      } else if (arg === "--show-summary") {
+        cliFlags.showSummary = true;
+      } else if (arg === "--skip-responsibility" || arg === "--no-responsibility") {
+        cliFlags.showPositionsOfResponsibility = false;
+      } else if (arg === "--show-responsibility") {
+        cliFlags.showPositionsOfResponsibility = true;
+      } else if (arg === "--skip-extracurriculars" || arg === "--no-extracurriculars") {
+        cliFlags.showExtraCurriculars = false;
+      } else if (arg === "--show-extracurriculars") {
+        cliFlags.showExtraCurriculars = true;
+      }
+    } else {
+      positionalArgTitle = arg;
+    }
+  }
+
+  // Handle Job Title
+  if (positionalArgTitle) {
+    jobTitle = positionalArgTitle.trim();
     fs.writeFileSync(roleLockPath, jobTitle, "utf8");
-    console.log(`Job title locked in as: "${jobTitle}" (saved to ${roleLockPath})`);
+    console.log(`Job title locked in as: "${jobTitle}"`);
   } else if (fs.existsSync(roleLockPath)) {
     const lockedRole = fs.readFileSync(roleLockPath, "utf8").trim();
     if (lockedRole) {
       jobTitle = lockedRole;
       console.log(`Loaded locked-in job title from file: "${jobTitle}"`);
     }
-  } else {
-    console.log(`No job title provided and no lock file found. Using default: "${jobTitle}"`);
+  }
+
+  // Handle persistent configuration
+  let config = { ...DEFAULT_CONFIG };
+  if (fs.existsSync(configPath)) {
+    try {
+      const savedConfig = JSON.parse(fs.readFileSync(configPath, "utf8"));
+      config = { ...config, ...savedConfig };
+      console.log("Loaded persistent configuration:", config);
+    } catch (e) {
+      console.error("Error reading config file:", e);
+    }
+  }
+
+  // Update persistent configuration if CLI flags are passed
+  if (hasCliFlags) {
+    config = { ...config, ...cliFlags };
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2), "utf8");
+    console.log("Updated and saved persistent configuration:", config);
   }
 
   // Validate API Key
@@ -280,7 +326,7 @@ async function main() {
     genAI = new GoogleGenerativeAI(apiKey);
     console.log("Gemini API client initialized successfully.");
   } else {
-    console.warn("GEMINI_API_KEY env variable not found. Falling back to default bullet points.");
+    console.warn("GEMINI_API_KEY env variable not found. Bullet points will use fallback generators.");
   }
 
   // Fetch repositories
@@ -342,11 +388,13 @@ async function main() {
   let finalSkills = [...profileData.skills];
 
   if (genAI) {
-    console.log(`Running AI optimizations tailored to: "${jobTitle}"`);
+    console.log(`Running AI optimizations tailored to: "${jobTitle}" using Gemini 3.5 Flash`);
     
     // 1. AI summary
-    console.log("Generating AI summary...");
-    finalSummary = await generateSummary(genAI, jobTitle, skillsString, profileData.bio.join(" "));
+    if (config.showSummary) {
+      console.log("Generating AI summary...");
+      finalSummary = await generateSummary(genAI, jobTitle, skillsString, profileData.bio.join(" "));
+    }
 
     // 2. AI achievements
     console.log("Polishing achievements with AI...");
@@ -356,7 +404,6 @@ async function main() {
     console.log("Reordering skills with AI...");
     const reordered = await reorderSkills(genAI, jobTitle, profileData.skills);
     
-    // Map values to make sure we keep categories correctly
     if (Array.isArray(reordered) && reordered.length > 0) {
       finalSkills = reordered.map((item: any) => {
         const original = profileData.skills.find(s => s.name.toLowerCase() === item.name.toLowerCase());
@@ -368,11 +415,13 @@ async function main() {
     }
   }
 
-  // Build the HTML template for A4 PDF compilation
-  const techSkills = finalSkills.filter(s => s.type === "tech").map(s => s.name).join(", ");
-  const creativeSkills = finalSkills.filter(s => s.type === "creative").map(s => s.name).join(", ");
-  const professionalSkills = finalSkills.filter(s => s.type === "professional").map(s => s.name).join(", ");
+  // Categorize skills into Languages, Frameworks, and Tools and Libraries
+  const categorized = categorizeSkills(finalSkills);
 
+  // Parse Hobbies & Interests
+  const hobbiesString = profileData.hobbies.map(h => h.name).join(", ");
+
+  // Build the HTML template for A4 PDF compilation
   const htmlContent = `
 <!DOCTYPE html>
 <html lang="en">
@@ -386,12 +435,12 @@ async function main() {
       padding: 0;
     }
     body {
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
       color: #222222;
       background-color: #ffffff;
       line-height: 1.4;
       font-size: 9.5px;
-      padding: 0.4in;
+      padding: 0.35in;
     }
     a {
       color: #222222;
@@ -399,20 +448,20 @@ async function main() {
     }
     .header {
       text-align: center;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .header h1 {
       font-size: 20px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
       color: #111111;
     }
     .contact-info {
       font-size: 9px;
       color: #555555;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
     .contact-info a {
       color: #0b57d0;
@@ -425,8 +474,8 @@ async function main() {
       letter-spacing: 0.5px;
       border-bottom: 1px solid #222222;
       padding-bottom: 1px;
-      margin-top: 12px;
-      margin-bottom: 6px;
+      margin-top: 10px;
+      margin-bottom: 5px;
       color: #111111;
     }
     .row {
@@ -444,11 +493,11 @@ async function main() {
       color: #444444;
     }
     .item-block {
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .skills-block {
-      line-height: 1.5;
-      margin-bottom: 8px;
+      line-height: 1.4;
+      margin-bottom: 6px;
     }
     .bullets {
       list-style-type: disc;
@@ -458,20 +507,21 @@ async function main() {
     .bullets li {
       font-size: 9.5px;
       color: #333333;
-      margin-bottom: 2px;
+      margin-bottom: 1px;
       line-height: 1.35;
     }
     .summary-text {
       font-size: 9.5px;
       color: #333333;
-      line-height: 1.4;
-      margin-bottom: 6px;
+      line-height: 1.35;
+      margin-bottom: 5px;
       text-align: justify;
     }
   </style>
 </head>
 <body>
 
+  <!-- Header -->
   <div class="header">
     <h1>${profileData.name}</h1>
     <div class="contact-info">
@@ -483,9 +533,13 @@ async function main() {
     </div>
   </div>
 
-  <div class="section-title">Summary</div>
-  <p class="summary-text">${finalSummary}</p>
+  <!-- 1. Summary (Toggleable) -->
+  ${config.showSummary ? `
+    <div class="section-title">Professional Summary</div>
+    <p class="summary-text">${finalSummary}</p>
+  ` : ""}
 
+  <!-- 2. Education -->
   <div class="section-title">Education</div>
   ${profileData.education.map(edu => `
     <div class="item-block">
@@ -500,42 +554,74 @@ async function main() {
     </div>
   `).join("")}
 
-  <div class="section-title">Skills</div>
-  <div class="skills-block">
-    <div><span class="bold-text">Technical Skills:</span> ${techSkills}</div>
-    <div><span class="bold-text">Creative & Multimedia:</span> ${creativeSkills}</div>
-    <div><span class="bold-text">Professional Qualities:</span> ${professionalSkills}</div>
-  </div>
+  <!-- 3 & 4. Experience & Internships (Show only if they exist) -->
+  <!-- Currently none in profileData, omitted dynamically -->
 
-  <div class="section-title">Achievements & Leadership</div>
-  ${finalAchievements.map(ach => `
-    <div class="item-block">
-      <div class="row">
-        <span class="bold-text">${ach.title}</span>
-        <span class="bold-text">${ach.subtitle || ""}</span>
-      </div>
-      <div class="row">
-        <span class="italic-text">${ach.institution || ""}</span>
-      </div>
-      <p style="margin-top: 2px; font-size: 9.5px; color: #333333; line-height: 1.35;">
-        ${ach.description}
-      </p>
-    </div>
-  `).join("")}
-
-  <div class="section-title">Featured Projects</div>
+  <!-- 5. Projects -->
+  <div class="section-title">Key Projects</div>
   ${projectsWithBullets.map(project => `
     <div class="item-block">
       <div class="row">
         <span class="bold-text">${project.name.replace(/-/g, ' ')}</span>
         <span><a href="${project.url}" target="_blank" style="text-decoration: underline; color: #0b57d0;">View Code</a></span>
       </div>
-      <div class="italic-text" style="font-size: 9px; margin-bottom: 2px;">Technologies: ${[project.language, ...project.topics].filter(Boolean).join(", ")}</div>
+      <div class="italic-text" style="font-size: 9px; margin-bottom: 1px;">Technologies: ${[project.language, ...project.topics].filter(t => t.toLowerCase() !== "dlib").join(", ")}</div>
       <ul class="bullets">
         ${project.bullets.map(b => `<li>${b}</li>`).join("")}
       </ul>
     </div>
   `).join("")}
+
+  <!-- 6. Position of Responsibility (Toggleable) -->
+  ${config.showPositionsOfResponsibility ? `
+    <div class="section-title">Positions of Responsibility</div>
+    ${profileData.positionsOfResponsibility.map(pos => `
+      <div class="item-block">
+        <div class="row">
+          <span class="bold-text">${pos.role}</span>
+          <span class="bold-text">${pos.duration}</span>
+        </div>
+        <div class="row">
+          <span class="italic-text">${pos.organization}</span>
+          <span class="italic-text">${pos.location}</span>
+        </div>
+        <p style="margin-top: 1px; font-size: 9.5px; color: #333333; line-height: 1.3;">
+          ${pos.description}
+        </p>
+      </div>
+    `).join("")}
+  ` : ""}
+
+  <!-- 7. Skills and Expertise (Grouped: Languages, Frameworks, Tools & Libraries) -->
+  <div class="section-title">Skills & Expertise</div>
+  <div class="skills-block">
+    <div><span class="bold-text">Languages:</span> ${categorized.languages}</div>
+    <div><span class="bold-text">Frameworks:</span> ${categorized.frameworks}</div>
+    <div><span class="bold-text">Tools and Libraries:</span> ${categorized.tools}</div>
+  </div>
+
+  <!-- 8. Extra-Curricular Activities (Toggleable) -->
+  ${config.showExtraCurriculars ? `
+    <div class="section-title">Achievements & Extra-Curriculars</div>
+    ${profileData.extraCurriculars.map(ach => `
+      <div class="item-block" style="margin-bottom: 4px;">
+        <div class="row">
+          <span class="bold-text">${ach.title}</span>
+          <span class="bold-text">${ach.duration}</span>
+        </div>
+        <div class="row">
+          <span class="italic-text">${ach.detail}</span>
+        </div>
+        <p style="margin-top: 1px; font-size: 9.5px; color: #333333; line-height: 1.3;">
+          ${ach.description}
+        </p>
+      </div>
+    `).join("")}
+  ` : ""}
+
+  <!-- 9. Hobbies & Interests -->
+  <div class="section-title">Hobbies & Interests</div>
+  <p class="summary-text" style="margin-bottom: 0;">${hobbiesString}</p>
 
 </body>
 </html>

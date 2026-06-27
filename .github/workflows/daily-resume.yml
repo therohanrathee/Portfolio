@@ -8,7 +8,22 @@ on:
       job_title:
         description: 'Target Job Title for Resume Customization'
         required: true
-        default: 'Software Engineer & Graphic Designer'
+        default: 'Full Stack & iOS Developer'
+      show_summary:
+        description: 'Include Summary Section'
+        type: boolean
+        required: true
+        default: true
+      show_responsibility:
+        description: 'Include Positions of Responsibility'
+        type: boolean
+        required: true
+        default: true
+      show_extracurriculars:
+        description: 'Include Extra-Curricular Activities'
+        type: boolean
+        required: true
+        default: true
 
 permissions:
   contents: write # Required to commit the updated resume and deploy static pages
@@ -34,21 +49,37 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          if [ -n "${{ github.event.inputs.job_title }}" ]; then
-            npx tsx scripts/generate-resume.ts "${{ github.event.inputs.job_title }}"
-          else
-            npx tsx scripts/generate-resume.ts
+          ARGS=""
+          TITLE=""
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TITLE="${{ github.event.inputs.job_title }}"
+            if [ "${{ github.event.inputs.show_summary }}" = "false" ]; then
+              ARGS="$ARGS --skip-summary"
+            else
+              ARGS="$ARGS --show-summary"
+            fi
+            if [ "${{ github.event.inputs.show_responsibility }}" = "false" ]; then
+              ARGS="$ARGS --skip-responsibility"
+            else
+              ARGS="$ARGS --show-responsibility"
+            fi
+            if [ "${{ github.event.inputs.show_extracurriculars }}" = "false" ]; then
+              ARGS="$ARGS --skip-extracurriculars"
+            else
+              ARGS="$ARGS --show-extracurriculars"
+            fi
           fi
+          npx tsx scripts/generate-resume.ts "$TITLE" $ARGS
 
-      - name: Commit and Push Resume PDF
+      - name: Commit and Push Resume PDF & Settings
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/resume.pdf public/target-role.txt
+          git add public/resume.pdf public/target-role.txt public/resume-config.json
           if git diff --staged --quiet; then
-            echo "No changes in resume or target role file"
+            echo "No changes in resume, config, or target role file"
           else
-            git commit -m "chore: auto-update daily resume [skip actions]"
+            git commit -m "chore: auto-update daily resume and settings [skip actions]"
             git push origin main
           fi
 

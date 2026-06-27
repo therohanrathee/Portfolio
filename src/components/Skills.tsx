@@ -14,10 +14,17 @@ const iconMap: Record<string, React.ReactNode> = {
   "Next.js": <Layout size={20} />,
   "React": <Code2 size={20} />,
   "TypeScript": <Terminal size={20} />,
+  "JavaScript": <Terminal size={20} />,
   "Swift (iOS)": <Smartphone size={20} />,
+  "SwiftUI": <Smartphone size={20} />,
+  "UIKit": <Layout size={20} />,
   "PostgreSQL": <Database size={20} />,
+  "Supabase": <Database size={20} />,
   "Python": <Terminal size={20} />,
   "C++": <Code2 size={20} />,
+  "Git": <Terminal size={20} />,
+  "Figma": <Palette size={20} />,
+  "Vercel": <Layout size={20} />,
   "Final Cut Pro": <Video size={20} />,
   "Adobe Photoshop": <Palette size={20} />,
   "Canva": <Palette size={20} />,
@@ -57,10 +64,12 @@ export default function Skills() {
 
         {mounted && (
           <div className={styles.bubbleContainer}>
-            {profileData.skills.map((skill, index) => {
-              // Generate random float animation parameters
-              const randomDuration = Math.random() * 2 + 3; // 3 to 5 seconds
-              const randomDelay = Math.random() * 2;
+            {profileData.skills
+              .filter(skill => skill.type === "tech" || skill.type === "creative")
+              .map((skill, index) => {
+                // Generate random float animation parameters
+                const randomDuration = Math.random() * 2 + 3; // 3 to 5 seconds
+                const randomDelay = Math.random() * 2;
 
               return (
                 <motion.div
