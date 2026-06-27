@@ -48,6 +48,116 @@ async function fetchAllRepos(): Promise<any[]> {
   return [];
 }
 
+async function selectBestProjects(
+  genAI: GoogleGenerativeAI,
+  jobTitle: string,
+  projects: any[],
+  limit: number = 4
+): Promise<any[]> {
+  const prompt = `You are an expert technical resume writer.
+Given a target job title and a list of candidate projects, analyze each project's name, description, language, and topics to rank and select the top ${limit} projects that are the absolute best fit for a candidate applying to the role of "${jobTitle}".
+Prioritize projects that demonstrate direct technical skills, framework usage, complexity, and engineering impact relevant to "${jobTitle}".
+
+Projects List:
+${JSON.stringify(projects.map(p => ({ name: p.name, description: p.description || "", language: p.language || "", topics: p.topics || [] })), null, 2)}
+
+Return the selected project names in raw JSON format matching this schema:
+{
+  "selected": [
+    { "name": "Exact Project Name 1" },
+    { "name": "Exact Project Name 2" }
+  ]
+}
+
+Return ONLY the raw JSON output.`;
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+    const response = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        temperature: 0.1,
+      },
+    });
+    const data = JSON.parse(response.response.text());
+    const selectedNames = (data.selected || []).map((s: any) => s.name.toLowerCase());
+    
+    // Filter and map to keep the selected projects in the order requested by AI
+    const matched: any[] = [];
+    for (const sName of selectedNames) {
+      const found = projects.find(p => p.name.toLowerCase() === sName);
+      if (found) {
+        matched.push(found);
+      }
+    }
+    
+    // Fallback if AI output matches nothing
+    if (matched.length === 0) {
+      return projects.slice(0, limit);
+    }
+    
+    return matched.slice(0, limit);
+  } catch (error) {
+    console.warn("Gemini AI project selection failed, using default sorting:", error);
+    return projects.slice(0, limit);
+  }
+}
+
+async function selectBestAccomplishments(
+  genAI: GoogleGenerativeAI,
+  jobTitle: string,
+  accomplishments: any[],
+  limit: number = 3
+): Promise<any[]> {
+  const prompt = `You are an expert technical resume writer.
+Given a target job title and a list of accomplishments (achievements, certifications, or extracurricular milestones), analyze and select the top ${limit} accomplishments that are the absolute best fit and most professional/impactful for a candidate applying to the role of "${jobTitle}".
+Prioritize accomplishments demonstrating leadership, coding competition success, strategic thinking, or high teamwork standards.
+
+Accomplishments List:
+${JSON.stringify(accomplishments.map(a => ({ title: a.title, institution: a.institution || a.subtitle || "", description: a.description })), null, 2)}
+
+Return the selected accomplishments in raw JSON format matching this schema:
+{
+  "selected": [
+    { "title": "Exact Accomplishment Title 1" },
+    { "title": "Exact Accomplishment Title 2" }
+  ]
+}
+
+Return ONLY the raw JSON output.`;
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+    const response = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        temperature: 0.1,
+      },
+    });
+    const data = JSON.parse(response.response.text());
+    const selectedTitles = (data.selected || []).map((s: any) => s.title.toLowerCase());
+    
+    const matched: any[] = [];
+    for (const sTitle of selectedTitles) {
+      const found = accomplishments.find(a => a.title.toLowerCase() === sTitle);
+      if (found) {
+        matched.push(found);
+      }
+    }
+    
+    if (matched.length === 0) {
+      return accomplishments.slice(0, limit);
+    }
+    
+    return matched.slice(0, limit);
+  } catch (error) {
+    console.warn("Gemini AI accomplishment selection failed, using default slice:", error);
+    return accomplishments.slice(0, limit);
+  }
+}
+
 async function generateBullets(
   genAI: GoogleGenerativeAI,
   repo: any,
@@ -150,7 +260,8 @@ Return the response in raw JSON format matching this schema:
     "title": "Achievement Title",
     "subtitle": "Subtitle",
     "institution": "Institution Name",
-    "description": "Polished description here"
+    "description": "Polished description here",
+    "duration": "Duration info if any"
   }
 ]
 
@@ -208,7 +319,6 @@ Return ONLY the raw JSON output.`;
 
 // Function to classify skills into: Languages, Frameworks, Tools and Libraries
 function categorizeSkills(skills: { name: string; type: string }[]) {
-  // Static configuration lists for categorization (fully case-insensitive)
   const LANGUAGES = ["javascript", "typescript", "swift", "python", "c++", "html", "css", "swift (ios)"];
   const FRAMEWORKS = ["next.js", "react", "swiftui", "uikit", "postgresql", "supabase", "react native", "express", "django", "node.js"];
   
@@ -219,12 +329,12 @@ function categorizeSkills(skills: { name: string; type: string }[]) {
   for (const skill of skills) {
     const nameLower = skill.name.toLowerCase();
     
-    // Explicitly omit Dlib as requested
+    // Explicitly omit Dlib
     if (nameLower === "dlib") {
       continue;
     }
     
-    // Skip soft skills / professional qualities for technical resume layout
+    // Skip professional/soft qualities
     if (skill.type === "professional") {
       continue;
     }
@@ -234,7 +344,6 @@ function categorizeSkills(skills: { name: string; type: string }[]) {
     } else if (FRAMEWORKS.includes(nameLower)) {
       frameworks.push(skill.name);
     } else {
-      // Everything else that is tech or creative goes to Tools and Libraries
       tools.push(skill.name);
     }
   }
@@ -260,7 +369,6 @@ async function main() {
   let jobTitle = "Full Stack & iOS Developer";
   
   // Parse command line arguments
-  // Arguments format: tsx scripts/generate-resume.ts [jobTitle] [--flags...]
   const args = process.argv.slice(2);
   let positionalArgTitle = "";
   let cliFlags: Partial<ResumeConfig> = {};
@@ -326,7 +434,7 @@ async function main() {
     genAI = new GoogleGenerativeAI(apiKey);
     console.log("Gemini API client initialized successfully.");
   } else {
-    console.warn("GEMINI_API_KEY env variable not found. Bullet points will use fallback generators.");
+    console.warn("GEMINI_API_KEY env variable not found. Fallback sorting will be used.");
   }
 
   // Fetch repositories
@@ -335,7 +443,7 @@ async function main() {
 
   const normalizedPinned = pinnedList.map(n => n.toLowerCase().replace(/[^a-z0-9]/g, ""));
   
-  // Format and prioritize repositories
+  // Format repositories
   const mappedProjects = allRepos.map((repo) => {
     const key = repo.name.toLowerCase().replace(/[^a-z0-9]/g, "");
     const isPinned = normalizedPinned.includes(key);
@@ -350,16 +458,22 @@ async function main() {
     };
   });
 
-  // Sort: Pinned first, then sorted by last updated
+  // Sort initially by default (pinned + updated)
   const sortedProjects = mappedProjects.sort((a, b) => {
     if (a.isPinned && !b.isPinned) return -1;
     if (!a.isPinned && b.isPinned) return 1;
     return b.updatedAt - a.updatedAt;
   });
 
-  // Take top 4 projects to ensure everything fits cleanly on one page
-  const selectedProjects = sortedProjects.slice(0, 4);
-  console.log(`Selected top ${selectedProjects.length} projects for resume generation.`);
+  // Use Gemini to select the best 4 projects based on Job Title
+  let selectedProjects = [];
+  if (genAI) {
+    console.log("Selecting best projects using Gemini 3.5 Flash...");
+    selectedProjects = await selectBestProjects(genAI, jobTitle, sortedProjects, 4);
+  } else {
+    selectedProjects = sortedProjects.slice(0, 4);
+  }
+  console.log(`Selected projects: ${selectedProjects.map(p => p.name).join(", ")}`);
 
   const skillsString = profileData.skills.map(s => s.name).join(", ");
   
@@ -382,9 +496,40 @@ async function main() {
     });
   }
 
+  // Compile accomplishments pool (Achievements + Extra-Curriculars)
+  const normAchievements = profileData.achievements.map(item => ({
+    title: item.title,
+    subtitle: item.subtitle,
+    institution: item.institution,
+    description: item.description,
+    duration: ""
+  }));
+
+  let accomplishmentPool = [...normAchievements];
+  if (config.showExtraCurriculars) {
+    const normExtra = profileData.extraCurriculars.map(item => ({
+      title: item.title,
+      subtitle: item.detail,
+      institution: "",
+      description: item.description,
+      duration: item.duration
+    }));
+    accomplishmentPool = [...accomplishmentPool, ...normExtra];
+  }
+
+  // Select the best 3 accomplishments using Gemini
+  let selectedAccomplishments = [];
+  if (genAI) {
+    console.log("Selecting top 3 accomplishments using Gemini 3.5 Flash...");
+    selectedAccomplishments = await selectBestAccomplishments(genAI, jobTitle, accomplishmentPool, 3);
+  } else {
+    selectedAccomplishments = accomplishmentPool.slice(0, 3);
+  }
+  console.log(`Selected accomplishments: ${selectedAccomplishments.map(a => a.title).join(" | ")}`);
+
   // AI-customized variables
   let finalSummary = profileData.bio.join(" ");
-  let finalAchievements = [...profileData.achievements];
+  let finalAccomplishments = [...selectedAccomplishments];
   let finalSkills = [...profileData.skills];
 
   if (genAI) {
@@ -396,9 +541,9 @@ async function main() {
       finalSummary = await generateSummary(genAI, jobTitle, skillsString, profileData.bio.join(" "));
     }
 
-    // 2. AI achievements
-    console.log("Polishing achievements with AI...");
-    finalAchievements = await polishAchievements(genAI, jobTitle, profileData.achievements);
+    // 2. AI achievements polishing
+    console.log("Polishing accomplishments with AI...");
+    finalAccomplishments = await polishAchievements(genAI, jobTitle, selectedAccomplishments);
 
     // 3. AI skills reordering
     console.log("Reordering skills with AI...");
@@ -555,11 +700,10 @@ async function main() {
   `).join("")}
 
   <!-- 3 & 4. Experience & Internships (Show only if they exist) -->
-  <!-- Currently none in profileData, omitted dynamically -->
 
   <!-- 5. Projects -->
   <div class="section-title">Key Projects</div>
-  ${projectsWithBullets.map(project => `
+  ${projectsWithBullets.map((project: any) => `
     <div class="item-block">
       <div class="row">
         <span class="bold-text">${project.name.replace(/-/g, ' ')}</span>
@@ -567,7 +711,7 @@ async function main() {
       </div>
       <div class="italic-text" style="font-size: 9px; margin-bottom: 1px;">Technologies: ${[project.language, ...project.topics].filter(t => t.toLowerCase() !== "dlib").join(", ")}</div>
       <ul class="bullets">
-        ${project.bullets.map(b => `<li>${b}</li>`).join("")}
+        ${project.bullets.map((b: string) => `<li>${b}</li>`).join("")}
       </ul>
     </div>
   `).join("")}
@@ -600,24 +744,22 @@ async function main() {
     <div><span class="bold-text">Tools and Libraries:</span> ${categorized.tools}</div>
   </div>
 
-  <!-- 8. Extra-Curricular Activities (Toggleable) -->
-  ${config.showExtraCurriculars ? `
-    <div class="section-title">Achievements & Extra-Curriculars</div>
-    ${profileData.extraCurriculars.map(ach => `
-      <div class="item-block" style="margin-bottom: 4px;">
-        <div class="row">
-          <span class="bold-text">${ach.title}</span>
-          <span class="bold-text">${ach.duration}</span>
-        </div>
-        <div class="row">
-          <span class="italic-text">${ach.detail}</span>
-        </div>
-        <p style="margin-top: 1px; font-size: 9.5px; color: #333333; line-height: 1.3;">
-          ${ach.description}
-        </p>
+  <!-- 8. Achievements & Extra-Curriculars (Top 3 selected, Toggleable via showExtraCurriculars toggle state) -->
+  <div class="section-title">Key Achievements & Accomplishments</div>
+  ${finalAccomplishments.map((ach: any) => `
+    <div class="item-block">
+      <div class="row">
+        <span class="bold-text">${ach.title}</span>
+        <span class="bold-text">${ach.duration || ach.subtitle || ""}</span>
       </div>
-    `).join("")}
-  ` : ""}
+      <div class="row">
+        <span class="italic-text">${ach.institution || ""}</span>
+      </div>
+      <p style="margin-top: 2px; font-size: 9.5px; color: #333333; line-height: 1.35;">
+        ${ach.description}
+      </p>
+    </div>
+  `).join("")}
 
   <!-- 9. Hobbies & Interests -->
   <div class="section-title">Hobbies & Interests</div>
