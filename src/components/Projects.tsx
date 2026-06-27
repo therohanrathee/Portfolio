@@ -65,11 +65,39 @@ export default function Projects({
   // Track one loop width for modulo calculations (measured dynamically)
   const [loopWidth, setLoopWidth] = useState(0);
 
+  const wheelTimeout = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     if (containerRef.current) {
       setLoopWidth(containerRef.current.scrollWidth / 4);
     }
-  }, [sortedProjects]);
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // Trackpad horizontal scroll detection
+      if (Math.abs(e.deltaX) > 0) {
+        // Prevent default browser swipe-back/forward history gestures
+        e.preventDefault();
+        
+        isDragging.current = true;
+        baseX.set(baseX.get() - e.deltaX * 0.85);
+
+        if (wheelTimeout.current) clearTimeout(wheelTimeout.current);
+        wheelTimeout.current = setTimeout(() => {
+          isDragging.current = false;
+        }, 150);
+      }
+    };
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    
+    return () => {
+      container.removeEventListener("wheel", handleWheel);
+      if (wheelTimeout.current) clearTimeout(wheelTimeout.current);
+    };
+  }, [sortedProjects, loopWidth]);
 
   // Framer Motion Velocity Scroll setup
   const baseX = useMotionValue(0);
