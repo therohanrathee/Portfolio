@@ -12,7 +12,8 @@ export const profileData = {
   },
   bio: [
     "I am a Computer Science Engineering Student, Graphic Designer, and Social Media Manager. By merging engineering logic with creative vision, I build user-first digital products (like AirDentalLab and CityBus) that excel in both functionality and aesthetic detail.",
-    "Driven by leadership and resilience, I have spearheaded events like Tech Titan 1.0, coordinated esports LANs for Tech Fusion 3.0, and achieved recommendation for the NDA-154 course from 1 AFSB, Dehradun (AIR 739, top 0.16% nationwide). I thrive in environments blending technical challenge and creative execution."
+    "Driven by leadership and resilience, I have spearheaded events like Tech Titan 1.0 (founding a school event chain) and coordinated esports LANs for Tech Fusion 3.0. Additionally, I achieved recommendation for the NDA-154 course from 1 AFSB, Dehradun, ranking AIR 739 (top 0.16% nationwide).",
+    "I combine my technical foundations in Next.js, React, and Swift with creative skills like video editing and design to build innovative, visual solutions."
   ],
   stats: {
     yearsExp: "3+",
