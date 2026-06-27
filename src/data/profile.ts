@@ -40,10 +40,22 @@ export const profileData = {
   ],
   achievements: [
     {
-      title: "SSB Recommended",
-      subtitle: "NDA-154 (2025)",
-      institution: "1 AFSB, Dehradun",
-      description: "Recommended for the National Defence Academy. Evaluated and recommended on officer-like qualities, leadership, and teamwork."
+      title: "SSB Recommended (AIR 739)",
+      subtitle: "NDA-154 (Top 0.16%)",
+      institution: "1 AFSB, Dehradun (Feb 2025)",
+      description: "Recommended for the National Defence Academy. Ranked AIR 739 out of ~4.5 Lakhs candidates. Evaluated on officer-like qualities, leadership, and resilience."
+    },
+    {
+      title: "Head Co-ordinator (BGMI LAN)",
+      subtitle: "Tech Fusion 3.0",
+      institution: "Interuniversity Event (Apr 2026)",
+      description: "Spearheaded coordination and staging for the BGMI LAN tournament. Supervised team scheduling, refereeing, and setup logistics."
+    },
+    {
+      title: "Founder & Head Organiser",
+      subtitle: "Tech Titan 1.0",
+      institution: "Colonel's Central Academy (Oct 2024)",
+      description: "Initialized and organized a multi-genre tech festival featuring gaming (BGMI, COD, Valorant, Minecraft), a hackathon, and a cryptic hunt. Now hosted annually."
     }
   ],
   personal: {
