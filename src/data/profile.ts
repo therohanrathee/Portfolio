@@ -38,11 +38,14 @@ export const profileData = {
       detail: "Score: 91%"
     }
   ],
-  ssb: {
-    title: "SSB Recommended",
-    badge: "NDA-154 (2025)",
-    description: "Recommended from 1 AFSB, Dehradun for the National Defence Academy. Evaluated and recommended on officer-like qualities, leadership, and teamwork."
-  },
+  achievements: [
+    {
+      title: "SSB Recommended",
+      subtitle: "NDA-154 (2025)",
+      institution: "1 AFSB, Dehradun",
+      description: "Recommended for the National Defence Academy. Evaluated and recommended on officer-like qualities, leadership, and teamwork."
+    }
+  ],
   personal: {
     languages: "Hindi (Native), English (Fluent)",
     location: "Gurugram, India"

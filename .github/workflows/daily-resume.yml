@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0 0 * * *' # Run daily at midnight UTC
   workflow_dispatch: # Allow manual trigger from the GitHub Actions UI
+    inputs:
+      job_title:
+        description: 'Target Job Title for Resume Customization'
+        required: true
+        default: 'Software Engineer & Graphic Designer'
 
 permissions:
   contents: write # Required to commit the updated resume and deploy static pages
@@ -28,15 +33,20 @@ jobs:
       - name: Generate PDF Resume
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: npx tsx scripts/generate-resume.ts
+        run: |
+          if [ -n "${{ github.event.inputs.job_title }}" ]; then
+            npx tsx scripts/generate-resume.ts "${{ github.event.inputs.job_title }}"
+          else
+            npx tsx scripts/generate-resume.ts
+          fi
 
       - name: Commit and Push Resume PDF
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/resume.pdf
+          git add public/resume.pdf public/target-role.txt
           if git diff --staged --quiet; then
-            echo "No changes in resume.pdf"
+            echo "No changes in resume or target role file"
           else
             git commit -m "chore: auto-update daily resume [skip actions]"
             git push origin main

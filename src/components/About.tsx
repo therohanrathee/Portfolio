@@ -94,17 +94,27 @@ export default function About() {
             </div>
           </motion.div>
 
-          {/* SSB Recommendation Card */}
+          {/* Achievements Card */}
           <motion.div 
             variants={cardVariants} 
             whileHover={{ y: -2 }}
             className={`glass-panel ${styles.bentoCard} ${styles.ssbCard}`}
           >
             <h3 className={styles.cardTitle}>
-              <Award className={styles.cardIcon} size={24} /> {profileData.ssb.title}
+              <Award className={styles.cardIcon} size={24} /> Achievements
             </h3>
-            <div className={styles.ssbBadge}>{profileData.ssb.badge}</div>
-            <p className={styles.ssbText} dangerouslySetInnerHTML={{ __html: profileData.ssb.description.replace(/1 AFSB, Dehradun/g, '<strong>$&</strong>') }} />
+            <div className={styles.achievementsList}>
+              {profileData.achievements.map((ach, index) => (
+                <div key={index} className={styles.achievementItem}>
+                  <div className={styles.achievementHeader}>
+                    <span className={styles.achievementTitle}>{ach.title}</span>
+                    <span className={styles.achievementSubtitle}>{ach.subtitle}</span>
+                  </div>
+                  <div className={styles.achievementInstitution}>{ach.institution}</div>
+                  <p className={styles.achievementDescription} dangerouslySetInnerHTML={{ __html: ach.description.replace(/1 AFSB, Dehradun/g, '<strong>$&</strong>') }} />
+                </div>
+              ))}
+            </div>
           </motion.div>
 
           {/* Languages & Details Card */}

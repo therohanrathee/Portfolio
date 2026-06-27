@@ -39,12 +39,14 @@ async function fetchAllRepos(): Promise<any[]> {
 async function generateBullets(
   genAI: GoogleGenerativeAI,
   repo: any,
-  skills: string
+  skills: string,
+  jobTitle: string
 ): Promise<string[]> {
   const prompt = `You are an expert technical resume writer. Write 2 concise, highly professional, ATS-optimized bullet points for a project in a developer resume.
+The candidate is applying for the role of "${jobTitle}".
 Use the STAR method (Situation, Task, Action, Result). 
 - Start each bullet point with a strong, diverse action verb (e.g. Architected, Optimized, Developed, Automated, Spearheaded, Implemented).
-- Emphasize technical details, language usage, frameworks, and engineering value.
+- Emphasize technical details, language usage, frameworks, and engineering value most relevant to the role of "${jobTitle}".
 - If the project has a description, draw from it. If not, infer from name, language, and topics.
 - Keep each bullet point under 180 characters.
 
@@ -102,8 +104,174 @@ Return ONLY the raw JSON output.`;
   }
 }
 
+async function generateSummary(
+  genAI: GoogleGenerativeAI,
+  jobTitle: string,
+  skills: string,
+  bio: string
+): Promise<string> {
+  const prompt = `You are an expert technical resume writer. Write a professional, high-impact resume summary (3 sentences maximum) for a candidate applying to the position of "${jobTitle}".
+Use the candidate's background bio and skills list to construct the summary. It must be highly polished, active, and fully optimized for Applicant Tracking Systems (ATS).
+
+Candidate Bio:
+${bio}
+
+Candidate Skills:
+${skills}
+
+Return ONLY the raw text for the summary. Do not include quotes, markdown wrappers, or intro text.`;
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const response = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.2 },
+    });
+    return response.response.text().trim();
+  } catch (error) {
+    console.warn("Gemini 2.0-flash summary failed, trying 1.5-flash...");
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const response = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.2 },
+      });
+      return response.response.text().trim();
+    } catch (fallbackError) {
+      console.error("AI summary generation failed entirely, using fallback.", fallbackError);
+      return bio;
+    }
+  }
+}
+
+async function polishAchievements(
+  genAI: GoogleGenerativeAI,
+  jobTitle: string,
+  achievements: any[]
+): Promise<any[]> {
+  const prompt = `You are an expert technical resume writer. Polish the following achievements/certifications to make them highly professional and relevant for a candidate applying to the role of "${jobTitle}".
+For each achievement:
+- Refine the description to highlight leadership, problem-solving, engineering value, or creative execution.
+- Keep each description concise and under 160 characters.
+
+Achievements:
+${JSON.stringify(achievements, null, 2)}
+
+Return the response in raw JSON format matching this schema:
+[
+  {
+    "title": "Achievement Title",
+    "subtitle": "Subtitle",
+    "institution": "Institution Name",
+    "description": "Polished description here"
+  }
+]
+
+Return ONLY the raw JSON output.`;
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const response = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        temperature: 0.1,
+      },
+    });
+    return JSON.parse(response.response.text());
+  } catch (error) {
+    console.warn("Gemini 2.0-flash achievements polish failed, trying 1.5-flash...");
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const response = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
+        },
+      });
+      return JSON.parse(response.response.text());
+    } catch (fallbackError) {
+      console.error("AI achievements polish failed entirely, using fallback.", fallbackError);
+      return achievements;
+    }
+  }
+}
+
+async function reorderSkills(
+  genAI: GoogleGenerativeAI,
+  jobTitle: string,
+  skills: any[]
+): Promise<any[]> {
+  const prompt = `You are an expert technical resume writer. Given a list of skills and their categories, reorder the skills in each category so that the skills most critical and relevant to the role of "${jobTitle}" are sorted at the top of their respective lists.
+Do not modify or add new skills; only reorder them.
+
+Skills List:
+${JSON.stringify(skills, null, 2)}
+
+Return the response in raw JSON format matching this schema:
+[
+  { "name": "Skill Name", "type": "tech|creative|professional" }
+]
+
+Return ONLY the raw JSON output.`;
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const response = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        temperature: 0.1,
+      },
+    });
+    return JSON.parse(response.response.text());
+  } catch (error) {
+    console.warn("Gemini 2.0-flash skills reorder failed, trying 1.5-flash...");
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const response = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
+        },
+      });
+      return JSON.parse(response.response.text());
+    } catch (fallbackError) {
+      console.error("AI skills reorder failed entirely, using fallback.", fallbackError);
+      return skills;
+    }
+  }
+}
+
 async function main() {
   console.log("Starting resume generation process...");
+
+  // Load target role lock-in logic
+  const publicDir = path.join(__dirname, "../public");
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir);
+  }
+  const roleLockPath = path.join(publicDir, "target-role.txt");
+
+  let jobTitle = "Software Engineer & Graphic Designer";
+  const argTitle = process.argv[2];
+
+  if (argTitle) {
+    jobTitle = argTitle.trim();
+    // Write new job title to lock file
+    fs.writeFileSync(roleLockPath, jobTitle, "utf8");
+    console.log(`Job title locked in as: "${jobTitle}" (saved to ${roleLockPath})`);
+  } else if (fs.existsSync(roleLockPath)) {
+    const lockedRole = fs.readFileSync(roleLockPath, "utf8").trim();
+    if (lockedRole) {
+      jobTitle = lockedRole;
+      console.log(`Loaded locked-in job title from file: "${jobTitle}"`);
+    }
+  } else {
+    console.log(`No job title provided and no lock file found. Using default: "${jobTitle}"`);
+  }
 
   // Validate API Key
   const apiKey = process.env.GEMINI_API_KEY;
@@ -155,7 +323,7 @@ async function main() {
     console.log(`Generating bullets for: ${project.name}...`);
     let bullets: string[] = [];
     if (genAI) {
-      bullets = await generateBullets(genAI, project, skillsString);
+      bullets = await generateBullets(genAI, project, skillsString, jobTitle);
     } else {
       bullets = [
         `Designed and implemented the repository using ${project.language || "software tools"}, applying standard styling and responsive design principles.`,
@@ -168,10 +336,42 @@ async function main() {
     });
   }
 
+  // AI-customized variables
+  let finalSummary = profileData.bio.join(" ");
+  let finalAchievements = [...profileData.achievements];
+  let finalSkills = [...profileData.skills];
+
+  if (genAI) {
+    console.log(`Running AI optimizations tailored to: "${jobTitle}"`);
+    
+    // 1. AI summary
+    console.log("Generating AI summary...");
+    finalSummary = await generateSummary(genAI, jobTitle, skillsString, profileData.bio.join(" "));
+
+    // 2. AI achievements
+    console.log("Polishing achievements with AI...");
+    finalAchievements = await polishAchievements(genAI, jobTitle, profileData.achievements);
+
+    // 3. AI skills reordering
+    console.log("Reordering skills with AI...");
+    const reordered = await reorderSkills(genAI, jobTitle, profileData.skills);
+    
+    // Map values to make sure we keep categories correctly
+    if (Array.isArray(reordered) && reordered.length > 0) {
+      finalSkills = reordered.map((item: any) => {
+        const original = profileData.skills.find(s => s.name.toLowerCase() === item.name.toLowerCase());
+        return {
+          name: item.name,
+          type: item.type || (original ? original.type : "tech")
+        };
+      });
+    }
+  }
+
   // Build the HTML template for A4 PDF compilation
-  const techSkills = profileData.skills.filter(s => s.type === "tech").map(s => s.name).join(", ");
-  const creativeSkills = profileData.skills.filter(s => s.type === "creative").map(s => s.name).join(", ");
-  const professionalSkills = profileData.skills.filter(s => s.type === "professional").map(s => s.name).join(", ");
+  const techSkills = finalSkills.filter(s => s.type === "tech").map(s => s.name).join(", ");
+  const creativeSkills = finalSkills.filter(s => s.type === "creative").map(s => s.name).join(", ");
+  const professionalSkills = finalSkills.filter(s => s.type === "professional").map(s => s.name).join(", ");
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -284,7 +484,7 @@ async function main() {
   </div>
 
   <div class="section-title">Summary</div>
-  <p class="summary-text">${profileData.bio.join(" ")}</p>
+  <p class="summary-text">${finalSummary}</p>
 
   <div class="section-title">Education</div>
   ${profileData.education.map(edu => `
@@ -308,18 +508,20 @@ async function main() {
   </div>
 
   <div class="section-title">Achievements & Leadership</div>
-  <div class="item-block">
-    <div class="row">
-      <span class="bold-text">${profileData.ssb.title} (AFSB Recommended)</span>
-      <span class="bold-text">2025</span>
+  ${finalAchievements.map(ach => `
+    <div class="item-block">
+      <div class="row">
+        <span class="bold-text">${ach.title}</span>
+        <span class="bold-text">${ach.subtitle || ""}</span>
+      </div>
+      <div class="row">
+        <span class="italic-text">${ach.institution || ""}</span>
+      </div>
+      <p style="margin-top: 2px; font-size: 9.5px; color: #333333; line-height: 1.35;">
+        ${ach.description}
+      </p>
     </div>
-    <div class="row">
-      <span class="italic-text">${profileData.ssb.badge}</span>
-    </div>
-    <p style="margin-top: 2px; font-size: 9.5px; color: #333333; line-height: 1.35;">
-      ${profileData.ssb.description}
-    </p>
-  </div>
+  `).join("")}
 
   <div class="section-title">Featured Projects</div>
   ${projectsWithBullets.map(project => `
@@ -341,10 +543,6 @@ async function main() {
 
   // Compile HTML to PDF using Puppeteer
   console.log("Compiling PDF with Puppeteer...");
-  const publicDir = path.join(__dirname, "../public");
-  if (!fs.existsSync(publicDir)) {
-    fs.mkdirSync(publicDir);
-  }
   const outputPath = path.join(publicDir, "resume.pdf");
 
   const browser = await puppeteer.launch({
