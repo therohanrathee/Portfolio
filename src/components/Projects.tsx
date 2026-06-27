@@ -68,7 +68,7 @@ export default function Projects({
   const wheelTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Dynamic base speed in pixels per millisecond (negative to crawl left, positive to crawl right)
-  const currentBaseVelocity = useRef(-0.015);
+  const currentBaseVelocity = useRef(-0.025);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -89,15 +89,15 @@ export default function Projects({
 
         // Update auto-scroll direction based on drag direction
         if (e.deltaX > 0) {
-          currentBaseVelocity.current = -0.015; // scroll left
+          currentBaseVelocity.current = -0.025; // scroll left
         } else {
-          currentBaseVelocity.current = 0.015;  // scroll right
+          currentBaseVelocity.current = 0.025;  // scroll right
         }
 
         if (wheelTimeout.current) clearTimeout(wheelTimeout.current);
         wheelTimeout.current = setTimeout(() => {
           isDragging.current = false;
-        }, 150);
+        }, 100);
       }
     };
 
@@ -118,35 +118,51 @@ export default function Projects({
     stiffness: 400
   });
 
-  useAnimationFrame((time, delta) => {
-    if (isDragging.current) return;
+  // Velocity and momentum tracking refs
+  const currentSpeed = useRef(0);
+  const lastX = useRef(0);
 
+  useAnimationFrame((time, delta) => {
     // Limit delta step to prevent jumps on tab refocus
     const maxDelta = 30;
     const adjustedDelta = Math.min(delta, maxDelta);
-    
-    // Auto-scroll speed (uses current base velocity direction)
-    let moveBy = currentBaseVelocity.current * adjustedDelta;
-    
-    // Add extra movement matching the webpage scroll speed and direction
-    // scrollVelocity is positive when scrolling down (move left), negative when scrolling up (move right)
-    const currentVelocity = smoothVelocity.get();
-    if (currentVelocity !== 0) {
-      const scrollContribution = -currentVelocity * 0.0015;
+    const currentX = baseX.get();
+
+    if (isDragging.current) {
+      // Calculate drag/scroll speed in the current frame
+      const deltaX = currentX - lastX.current;
+      const maxDragSpeed = 25; // clamp to reasonable max speed
+      currentSpeed.current = Math.max(-maxDragSpeed, Math.min(maxDragSpeed, deltaX));
+    } else {
+      // Auto-scroll speed (uses current base velocity direction)
+      let targetSpeed = currentBaseVelocity.current * adjustedDelta;
       
-      // Update persistent auto-scroll direction if vertical page scroll is substantial
-      if (Math.abs(currentVelocity) > 50) {
-        if (scrollContribution > 0) {
-          currentBaseVelocity.current = 0.015;  // crawl right
-        } else if (scrollContribution < 0) {
-          currentBaseVelocity.current = -0.015; // crawl left
+      // Add extra movement matching the webpage scroll speed and direction
+      // scrollVelocity is positive when scrolling down (move left), negative when scrolling up (move right)
+      const currentVelocity = smoothVelocity.get();
+      if (currentVelocity !== 0) {
+        const scrollContribution = -currentVelocity * 0.0015;
+        
+        // Update persistent auto-scroll direction if vertical page scroll is substantial
+        if (Math.abs(currentVelocity) > 50) {
+          if (scrollContribution > 0) {
+            currentBaseVelocity.current = 0.025;  // crawl right
+          } else if (scrollContribution < 0) {
+            currentBaseVelocity.current = -0.025; // crawl left
+          }
         }
+
+        targetSpeed += scrollContribution * (adjustedDelta / 16.67);
       }
 
-      moveBy += scrollContribution * (adjustedDelta / 16.67);
+      // Smoothly decay/blend currentSpeed towards the targetSpeed (deceleration effect)
+      currentSpeed.current = currentSpeed.current * 0.94 + targetSpeed * 0.06;
+
+      // Translate the marquee track
+      baseX.set(currentX + currentSpeed.current);
     }
 
-    baseX.set(baseX.get() + moveBy);
+    lastX.current = baseX.get();
   });
 
   // Wrap translation from -loopWidth to 0px
@@ -193,9 +209,9 @@ export default function Projects({
 
     // Update auto-scroll direction based on mouse drag direction
     if (walk > 0) {
-      currentBaseVelocity.current = 0.015;  // scroll right
+      currentBaseVelocity.current = 0.025;  // scroll right
     } else if (walk < 0) {
-      currentBaseVelocity.current = -0.015; // scroll left
+      currentBaseVelocity.current = -0.025; // scroll left
     }
 
     baseX.set(baseX.get() + walk);
@@ -223,9 +239,9 @@ export default function Projects({
 
     // Update auto-scroll direction based on touch drag direction
     if (walk > 0) {
-      currentBaseVelocity.current = 0.015;  // scroll right
+      currentBaseVelocity.current = 0.025;  // scroll right
     } else if (walk < 0) {
-      currentBaseVelocity.current = -0.015; // scroll left
+      currentBaseVelocity.current = -0.025; // scroll left
     }
 
     baseX.set(baseX.get() + walk);
