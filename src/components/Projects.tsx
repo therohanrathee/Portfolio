@@ -72,7 +72,7 @@ export default function Projects({
   });
 
   // Constant base speed (negative to scroll leftwards)
-  const baseVelocity = -0.05;
+  const baseVelocity = -0.005;
 
   useAnimationFrame((time, delta) => {
     // Limit delta step to prevent jumps on tab refocus
@@ -85,7 +85,7 @@ export default function Projects({
     // Add extra movement matching the webpage scroll speed and direction
     const vFactor = velocityFactor.get();
     if (vFactor !== 0) {
-      moveBy += vFactor * baseVelocity * 0.5;
+      moveBy += vFactor * baseVelocity * 0.2;
     }
 
     baseX.set(baseX.get() + moveBy);
