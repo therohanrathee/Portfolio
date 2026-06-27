@@ -93,17 +93,17 @@ export default function About() {
             </h3>
             <div className={styles.personalGrid}>
               <div className={styles.personalItem}>
-                <Languages className={styles.personalIcon} size={18} />
-                <div className={styles.personalText}>
-                  <span className={styles.personalLabel}>Languages</span>
-                  <span className={styles.personalValue}>{profileData.personal.languages}</span>
-                </div>
-              </div>
-              <div className={styles.personalItem}>
                 <MapPin className={styles.personalIcon} size={18} />
                 <div className={styles.personalText}>
                   <span className={styles.personalLabel}>Location</span>
                   <span className={styles.personalValue}>{profileData.personal.location}</span>
+                </div>
+              </div>
+              <div className={styles.personalItem}>
+                <Languages className={styles.personalIcon} size={18} />
+                <div className={styles.personalText}>
+                  <span className={styles.personalLabel}>Languages</span>
+                  <span className={styles.personalValue}>{profileData.personal.languages}</span>
                 </div>
               </div>
             </div>
