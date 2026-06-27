@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import styles from "./About.module.css";
-import { User, GraduationCap, Languages, MapPin } from "lucide-react";
+import { User, GraduationCap, Languages, MapPin, TrendingUp } from "lucide-react";
 import { profileData } from "@/data/profile";
 
 export default function About() {
@@ -58,18 +58,6 @@ export default function About() {
                 dangerouslySetInnerHTML={{ __html: paragraph.replace(/Graphic Designer|Social Media Manager|Computer Science Engineering Student|Next\.js|React|TypeScript|Swift \(iOS\)|Tech Titan 1\.0|Tech Fusion 3\.0|AIR 739|1 AFSB, Dehradun|NDA-154/gi, '<strong>$&</strong>') }}
               />
             ))}
-            
-            {/* Embedded Stats */}
-            <div className={styles.embeddedStats}>
-              <div className={styles.statItem}>
-                <span className={styles.statNumber}>{profileData.stats.yearsExp}</span>
-                <span className={styles.statLabel}>Years Exp</span>
-              </div>
-              <div className={styles.statItem}>
-                <span className={styles.statNumber}>{profileData.stats.projectsCompleted}</span>
-                <span className={styles.statLabel}>Projects Completed</span>
-              </div>
-            </div>
           </motion.div>
 
           {/* Education Card */}
@@ -94,7 +82,6 @@ export default function About() {
             </div>
           </motion.div>
 
-
           {/* Languages & Details Card */}
           <motion.div 
             variants={cardVariants} 
@@ -118,6 +105,27 @@ export default function About() {
                   <span className={styles.personalLabel}>Location</span>
                   <span className={styles.personalValue}>{profileData.personal.location}</span>
                 </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Stats Card */}
+          <motion.div 
+            variants={cardVariants} 
+            whileHover={{ y: -2 }}
+            className={`glass-panel ${styles.bentoCard} ${styles.statsCard}`}
+          >
+            <h3 className={styles.cardTitle}>
+              <TrendingUp className={styles.cardIcon} size={24} /> Stats
+            </h3>
+            <div className={styles.statsGrid}>
+              <div className={styles.statBox}>
+                <span className={styles.statNumber}>{profileData.stats.yearsExp}</span>
+                <span className={styles.statLabel}>Years Exp</span>
+              </div>
+              <div className={styles.statBox}>
+                <span className={styles.statNumber}>{profileData.stats.projectsCompleted}</span>
+                <span className={styles.statLabel}>Projects</span>
               </div>
             </div>
           </motion.div>
