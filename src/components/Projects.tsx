@@ -67,21 +67,25 @@ export default function Projects({
   });
   
   // Transform scroll velocity into horizontal scroll speed factor
-  const velocityFactor = useTransform(smoothVelocity, [0, 1000], [0, 5], {
-    clamp: false
+  const velocityFactor = useTransform(smoothVelocity, [0, 1000], [0, 1.5], {
+    clamp: true
   });
 
   // Constant base speed (negative to scroll leftwards)
-  const baseVelocity = -0.5;
+  const baseVelocity = -0.05;
 
   useAnimationFrame((time, delta) => {
+    // Limit delta step to prevent jumps on tab refocus
+    const maxDelta = 30;
+    const adjustedDelta = Math.min(delta, maxDelta);
+    
     // Standard slow movement speed
-    let moveBy = baseVelocity * (delta / 10);
+    let moveBy = baseVelocity * (adjustedDelta / 10);
     
     // Add extra movement matching the webpage scroll speed and direction
     const vFactor = velocityFactor.get();
     if (vFactor !== 0) {
-      moveBy += vFactor * baseVelocity * 0.8;
+      moveBy += vFactor * baseVelocity * 0.5;
     }
 
     baseX.set(baseX.get() + moveBy);
