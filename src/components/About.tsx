@@ -55,7 +55,7 @@ export default function About() {
               <p 
                 key={index} 
                 className={styles.description}
-                dangerouslySetInnerHTML={{ __html: paragraph.replace(/Graphic Designer|Social Media Manager|Computer Science Engineering Student/g, '<strong>$&</strong>') }}
+                dangerouslySetInnerHTML={{ __html: paragraph.replace(/Graphic Designer|Social Media Manager|Computer Science Engineering Student|Next\.js|React|TypeScript|Swift \(iOS\)|Tech Titan 1\.0|Tech Fusion 3\.0|AIR 739|1 AFSB, Dehradun|NDA-154/gi, '<strong>$&</strong>') }}
               />
             ))}
             

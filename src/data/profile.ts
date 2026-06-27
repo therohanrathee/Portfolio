@@ -11,8 +11,9 @@ export const profileData = {
     instagram: "https://instagram.com/therohanrathee",
   },
   bio: [
-    "I am a passionate Graphic Designer, Social Media Manager, and Computer Science Engineering Student. I have over 3 years of expertise working closely with clients to solve problems and achieve accelerating results.",
-    "As a tech-savvy creative, I combine strong technical foundations in coding with an expert eye for design and multimedia production. I strongly believe that passion brings possibilities to life, and I am a visual thinker dedicated to delivering innovative projects that look just as good as they perform."
+    "I am a Computer Science Engineering Student, Graphic Designer, and Social Media Manager with over 3 years of experience solving complex problems and delivering high-impact solutions for diverse clients. By merging engineering logic with creative vision, I specialize in building user-first digital products that excel in both functionality and aesthetic detail.",
+    "My technical expertise spans Next.js, React, TypeScript, and Swift (iOS), backed by creative tools like Final Cut Pro and Photoshop. From architecting clinic management interfaces like AirDentalLab to building transit apps like CityBus, I craft responsive architectures with clean code, ensuring that every project is highly optimized, accessible, and visually striking.",
+    "Beyond software engineering, I am a proven leader and organizer. I founded the annual Tech Titan school festival, coordinated esports LAN events for Tech Fusion 3.0, and achieved recommendation for the NDA-154 course from 1 AFSB, Dehradun, ranking AIR 739 (top 0.16% nationwide). I thrive in fast-paced environments that demand leadership, teamwork, and resilience."
   ],
   stats: {
     yearsExp: "3+",
