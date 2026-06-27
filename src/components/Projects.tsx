@@ -67,6 +67,9 @@ export default function Projects({
 
   const wheelTimeout = useRef<NodeJS.Timeout | null>(null);
 
+  // Dynamic base speed in pixels per millisecond (negative to crawl left, positive to crawl right)
+  const currentBaseVelocity = useRef(-0.015);
+
   useEffect(() => {
     if (containerRef.current) {
       setLoopWidth(containerRef.current.scrollWidth / 4);
@@ -83,6 +86,13 @@ export default function Projects({
         
         isDragging.current = true;
         baseX.set(baseX.get() - e.deltaX * 0.85);
+
+        // Update auto-scroll direction based on drag direction
+        if (e.deltaX > 0) {
+          currentBaseVelocity.current = -0.015; // scroll left
+        } else {
+          currentBaseVelocity.current = 0.015;  // scroll right
+        }
 
         if (wheelTimeout.current) clearTimeout(wheelTimeout.current);
         wheelTimeout.current = setTimeout(() => {
@@ -108,9 +118,6 @@ export default function Projects({
     stiffness: 400
   });
 
-  // Constant base speed in pixels per millisecond (negative to crawl left)
-  const baseVelocity = -0.015;
-
   useAnimationFrame((time, delta) => {
     if (isDragging.current) return;
 
@@ -118,14 +125,24 @@ export default function Projects({
     const maxDelta = 30;
     const adjustedDelta = Math.min(delta, maxDelta);
     
-    // Auto-scroll speed
-    let moveBy = baseVelocity * adjustedDelta;
+    // Auto-scroll speed (uses current base velocity direction)
+    let moveBy = currentBaseVelocity.current * adjustedDelta;
     
     // Add extra movement matching the webpage scroll speed and direction
     // scrollVelocity is positive when scrolling down (move left), negative when scrolling up (move right)
     const currentVelocity = smoothVelocity.get();
     if (currentVelocity !== 0) {
       const scrollContribution = -currentVelocity * 0.0015;
+      
+      // Update persistent auto-scroll direction if vertical page scroll is substantial
+      if (Math.abs(currentVelocity) > 50) {
+        if (scrollContribution > 0) {
+          currentBaseVelocity.current = 0.015;  // crawl right
+        } else if (scrollContribution < 0) {
+          currentBaseVelocity.current = -0.015; // crawl left
+        }
+      }
+
       moveBy += scrollContribution * (adjustedDelta / 16.67);
     }
 
@@ -173,6 +190,14 @@ export default function Projects({
     const walk = e.pageX - startX.current;
     startX.current = e.pageX;
     dragDistance.current += Math.abs(walk);
+
+    // Update auto-scroll direction based on mouse drag direction
+    if (walk > 0) {
+      currentBaseVelocity.current = 0.015;  // scroll right
+    } else if (walk < 0) {
+      currentBaseVelocity.current = -0.015; // scroll left
+    }
+
     baseX.set(baseX.get() + walk);
   };
 
@@ -195,6 +220,14 @@ export default function Projects({
     const walk = e.touches[0].pageX - startX.current;
     startX.current = e.touches[0].pageX;
     dragDistance.current += Math.abs(walk);
+
+    // Update auto-scroll direction based on touch drag direction
+    if (walk > 0) {
+      currentBaseVelocity.current = 0.015;  // scroll right
+    } else if (walk < 0) {
+      currentBaseVelocity.current = -0.015; // scroll left
+    }
+
     baseX.set(baseX.get() + walk);
   };
 
