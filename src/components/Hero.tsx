@@ -70,11 +70,8 @@ export default function Hero() {
           </motion.p>
 
           <motion.div variants={itemVariants} className={styles.ctaContainer}>
-            <Link href="#projects">
-              <button className={styles.primaryBtn}>View Projects</button>
-            </Link>
-            <Link href="#contact">
-              <button className={styles.secondaryBtn}>Contact Me</button>
+            <Link href="/dashboard">
+              <button className={styles.primaryBtn}>Hire Me</button>
             </Link>
           </motion.div>
         </motion.div>
