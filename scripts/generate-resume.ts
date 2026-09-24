@@ -16,6 +16,20 @@ const DEFAULT_CONFIG: ResumeConfig = {
   showExtraCurriculars: true,
 };
 
+const PROJECT_HIGHLIGHTS: Record<string, string> = {
+  "Portfolio": "Highlight the dynamic CI/CD self-updating resume automation engine.",
+  "LaadoFashion": "Highlight the different portals for admin, tailor, runner, and customer.",
+  "Laado-Fashion": "Highlight the different portals for admin, tailor, runner, and customer.",
+  "Laado_Fashion": "Highlight the different portals for admin, tailor, runner, and customer.",
+  "laado-fashion": "Highlight the different portals for admin, tailor, runner, and customer.",
+  "BlindSide": "Highlight the morphing onboarding wizard, real-time chats, and transactional wallet system.",
+  "BGMI-LAN-Event": "Highlight the real-time tournament management and live scoring dashboard.",
+  "Calorie-Tracker": "Highlight the AI-powered food image analysis and dynamic HealthKit integration.",
+  "DentalClinic": "Highlight the interactive 3D dental models and anonymous appointment booking.",
+  "Gym-Website": "Highlight the Lenis smooth scrolling, Framer Motion animations, and interactive scroll-based image sequences.",
+  "LiftShift": "Highlight the interactive muscle heatmaps, plateau detection, and AI-powered workout analysis."
+};
+
 async function fetchPinnedRepos(): Promise<string[]> {
   const pinnedRepos: string[] = [];
   try {
@@ -72,7 +86,7 @@ Return the selected project names in raw JSON format matching this schema:
 Return ONLY the raw JSON output.`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const response = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
@@ -128,7 +142,7 @@ Return the selected accomplishments in raw JSON format matching this schema:
 Return ONLY the raw JSON output.`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const response = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
@@ -162,14 +176,18 @@ async function generateBullets(
   genAI: GoogleGenerativeAI,
   repo: any,
   skills: string,
-  jobTitle: string
+  jobTitle: string,
+  customInstruction: string = ""
 ): Promise<string[]> {
+  const highlight = PROJECT_HIGHLIGHTS[repo.name] || "";
   const prompt = `You are an expert technical resume writer. Write 2 concise, highly professional, ATS-optimized bullet points for a project in a developer resume.
 The candidate is applying for the role of "${jobTitle}".
 Use the STAR method (Situation, Task, Action, Result). 
 - Start each bullet point with a strong, diverse action verb (e.g. Architected, Optimized, Developed, Automated, Spearheaded, Implemented).
 - Emphasize technical details, language usage, frameworks, and engineering value most relevant to the role of "${jobTitle}".
 - If the project has a description, draw from it. If not, infer from name, language, and topics.
+${highlight ? `- IMPORTANT HIGHLIGHT: ${highlight}` : ""}
+${customInstruction ? `- ADDITIONAL CUSTOM INSTRUCTION: ${customInstruction}` : ""}
 - Keep each bullet point under 180 characters.
 
 Project Metadata:
@@ -192,7 +210,7 @@ Return the response in raw JSON format matching this schema:
 Return ONLY the raw JSON output.`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const response = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
@@ -203,10 +221,16 @@ Return ONLY the raw JSON output.`;
     const data = JSON.parse(response.response.text());
     return data.bullets || [];
   } catch (error) {
-    console.warn(`Gemini 3.5-flash failed for ${repo.name}:`, error);
+    console.warn(`Gemini failed for ${repo.name}:`, error);
+    if (highlight) {
+      return [
+        `Developed ${repo.name} using ${repo.language || "modern technologies"}, focusing on clean architecture and performance.`,
+        `${highlight}`
+      ];
+    }
     return [
       `Developed ${repo.name} using ${repo.language || "modern technologies"} with focus on clean architecture and performance.`,
-      `Integrated repository features, setting up code versioning and documenting implementation details on GitHub.`
+      `Implemented core features and documented technical specifications to ensure scalability and maintainability.`
     ];
   }
 }
@@ -215,10 +239,12 @@ async function generateSummary(
   genAI: GoogleGenerativeAI,
   jobTitle: string,
   skills: string,
-  bio: string
+  bio: string,
+  customInstruction: string = ""
 ): Promise<string> {
   const prompt = `You are an expert technical resume writer. Write a professional, high-impact resume summary (3 sentences maximum) for a candidate applying to the position of "${jobTitle}".
 Use the candidate's background bio and skills list to construct the summary. It must be highly polished, active, and fully optimized for Applicant Tracking Systems (ATS).
+${customInstruction ? `ADDITIONAL CUSTOM INSTRUCTION: ${customInstruction}` : ""}
 
 Candidate Bio:
 ${bio}
@@ -229,7 +255,7 @@ ${skills}
 Return ONLY the raw text for the summary. Do not include quotes, markdown wrappers, or intro text.`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const response = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: { temperature: 0.2 },
@@ -268,7 +294,7 @@ Return the response in raw JSON format matching this schema:
 Return ONLY the raw JSON output.`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const response = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
@@ -302,7 +328,7 @@ Return the response in raw JSON format matching this schema:
 Return ONLY the raw JSON output.`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const response = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
@@ -370,6 +396,7 @@ async function main() {
   
   // Read environment variables (passed from GitHub Actions)
   const envJobTitle = process.env.JOB_TITLE;
+  const customInstruction = process.env.CUSTOM_INSTRUCTION || "";
   const envShowSummary = process.env.SHOW_SUMMARY;
   const envShowResponsibility = process.env.SHOW_RESPONSIBILITY;
   const envShowExtraCurriculars = process.env.SHOW_EXTRACURRICULARS;
@@ -514,11 +541,12 @@ async function main() {
     console.log(`Generating bullets for: ${project.name}...`);
     let bullets: string[] = [];
     if (genAI) {
-      bullets = await generateBullets(genAI, project, skillsString, jobTitle);
+      bullets = await generateBullets(genAI, project, skillsString, jobTitle, customInstruction);
     } else {
+      const highlight = PROJECT_HIGHLIGHTS[project.name] || "";
       bullets = [
         `Designed and implemented the repository using ${project.language || "software tools"}, applying standard styling and responsive design principles.`,
-        `Configured git source control, structure, and documentation to align with dynamic portfolio deployment criteria.`
+        highlight || `Configured git source control, structure, and documentation to align with dynamic portfolio deployment criteria.`
       ];
     }
     projectsWithBullets.push({

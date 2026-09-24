@@ -6,9 +6,13 @@ on:
   workflow_dispatch: # Allow manual trigger from the GitHub Actions UI
     inputs:
       job_title:
-        description: 'Target Job Title for Resume Customization'
-        required: true
-        default: 'Full Stack & iOS Developer'
+        description: 'Target Job Title (Leave blank to use last saved role)'
+        required: false
+        default: ''
+      custom_instruction:
+        description: 'Additional custom instructions for the AI'
+        required: false
+        default: ''
       show_summary:
         description: 'Include Summary Section'
         type: boolean
@@ -49,6 +53,7 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           JOB_TITLE: ${{ github.event.inputs.job_title }}
+          CUSTOM_INSTRUCTION: ${{ github.event.inputs.custom_instruction }}
           SHOW_SUMMARY: ${{ github.event.inputs.show_summary }}
           SHOW_RESPONSIBILITY: ${{ github.event.inputs.show_responsibility }}
           SHOW_EXTRACURRICULARS: ${{ github.event.inputs.show_extracurriculars }}
