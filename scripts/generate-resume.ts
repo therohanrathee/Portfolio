@@ -17,17 +17,17 @@ const DEFAULT_CONFIG: ResumeConfig = {
 };
 
 const PROJECT_HIGHLIGHTS: Record<string, string> = {
-  "Portfolio": "Highlight the dynamic CI/CD self-updating resume automation engine.",
-  "LaadoFashion": "Highlight the different portals for admin, tailor, runner, and customer.",
-  "Laado-Fashion": "Highlight the different portals for admin, tailor, runner, and customer.",
-  "Laado_Fashion": "Highlight the different portals for admin, tailor, runner, and customer.",
-  "laado-fashion": "Highlight the different portals for admin, tailor, runner, and customer.",
-  "BlindSide": "Highlight the morphing onboarding wizard, real-time chats, and transactional wallet system.",
-  "BGMI-LAN-Event": "Highlight the real-time tournament management and live scoring dashboard.",
-  "Calorie-Tracker": "Highlight the AI-powered food image analysis and dynamic HealthKit integration.",
-  "DentalClinic": "Highlight the interactive 3D dental models and anonymous appointment booking.",
-  "Gym-Website": "Highlight the Lenis smooth scrolling, Framer Motion animations, and interactive scroll-based image sequences.",
-  "LiftShift": "Highlight the interactive muscle heatmaps, plateau detection, and AI-powered workout analysis."
+  "Portfolio": "Engineered a dynamic CI/CD self-updating resume automation engine using GitHub Actions and Puppeteer.",
+  "LaadoFashion": "Architected comprehensive portals for admins, tailors, runners, and customers to streamline operations.",
+  "Laado-Fashion": "Architected comprehensive portals for admins, tailors, runners, and customers to streamline operations.",
+  "Laado_Fashion": "Architected comprehensive portals for admins, tailors, runners, and customers to streamline operations.",
+  "laado-fashion": "Architected comprehensive portals for admins, tailors, runners, and customers to streamline operations.",
+  "BlindSide": "Developed a morphing onboarding wizard, real-time chats, and a transactional wallet system.",
+  "BGMI-LAN-Event": "Built a real-time esports tournament management platform featuring a live scoring dashboard.",
+  "Calorie-Tracker": "Integrated AI-powered food image analysis and dynamic HealthKit data synchronization.",
+  "DentalClinic": "Implemented interactive 3D dental models and a secure, anonymous appointment booking system.",
+  "Gym-Website": "Created an immersive UI with Lenis smooth scrolling, Framer Motion, and scroll-based image sequences.",
+  "LiftShift": "Designed interactive muscle heatmaps, plateau detection algorithms, and AI-powered workout analysis."
 };
 
 async function fetchPinnedRepos(): Promise<string[]> {
